@@ -1,9 +1,9 @@
 package route
 
 import (
-	"devmentor-BE103-golang/handler/general"
-	"devmentor-BE103-golang/handler/post"
 	"github.com/gin-gonic/gin"
+	"shopping-cart/handler/general"
+	"shopping-cart/handler/post"
 )
 
 func InitGinServer() (server *gin.Engine, err error) {

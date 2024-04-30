@@ -21,4 +21,7 @@ func newRoute(h *Post, r *gin.RouterGroup) {
 
 	Group.GET("", h.get)
 	Group.POST("", h.create)
+	Group.GET("/:id", h.getByID)
+	Group.POST("/:id", h.updatePost)
+	Group.DELETE("/:id", h.deletePost)
 }

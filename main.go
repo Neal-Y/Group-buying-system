@@ -1,9 +1,9 @@
 package main
 
 import (
-	"devmentor-BE103-golang/infrastructure"
-	"devmentor-BE103-golang/route"
 	"log"
+	"shopping-cart/infrastructure"
+	"shopping-cart/route"
 )
 
 func main() {

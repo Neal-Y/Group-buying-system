@@ -7,23 +7,28 @@ import (
 	"shopping-cart/model/datatransfer"
 )
 
-func (h *Post) create(c *gin.Context) {
+func (h *Post) updatePost(c *gin.Context) {
+	id := c.Param("id")
+	post := database.Post{}
+
+	err := post.FindById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	f := datatransfer.PostCreate{}
-	err := c.ShouldBindJSON(&f)
+	err = c.ShouldBindJSON(&f)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	post := database.Post{
-		Title:   f.Title,
-		Content: f.Content,
-	}
-	err = post.Create()
+	err = post.Update(&f)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, post)
 }

@@ -1,8 +1,9 @@
 package database
 
 import (
-	"devmentor-BE103-golang/infrastructure"
 	"gorm.io/gorm"
+	"shopping-cart/infrastructure"
+	"shopping-cart/model/datatransfer"
 	"time"
 )
 
@@ -22,6 +23,23 @@ func (post *Post) model() *gorm.DB { return infrastructure.Db.Model(post) }
 
 func (post *Post) FindAll() error {
 	return post.model().Find(&post).Error
+}
+
+func (post *Post) FindById(id string) error {
+	return post.model().Find(&post, id).Error
+}
+
+func (post *Post) Update(updatePayload *datatransfer.PostCreate) error {
+	updateData := Post{
+		Title:   updatePayload.Title,
+		Content: updatePayload.Content,
+	}
+
+	return post.model().Updates(updateData).Error
+}
+
+func (post *Post) Delete() error {
+	return post.model().Delete(post).Error
 }
 
 func (post *Post) Create() error {

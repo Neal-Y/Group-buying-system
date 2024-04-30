@@ -1,10 +1,10 @@
 package post
 
 import (
-	"devmentor-BE103-golang/model/database"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"shopping-cart/model/database"
 )
 
 func (h *Post) get(c *gin.Context) {
@@ -18,4 +18,18 @@ func (h *Post) get(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, posts)
+}
+
+func (h *Post) getByID(c *gin.Context) {
+	id := c.Param("id")
+	post := database.Post{}
+
+	err := post.FindById(id).Error
+
+	if err != nil {
+		logrus.Error(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, post)
 }

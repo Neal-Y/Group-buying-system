@@ -1,4 +1,4 @@
-module devmentor-BE103-golang
+module shopping-cart
 
 go 1.19
 
