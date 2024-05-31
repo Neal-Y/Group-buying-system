@@ -3,7 +3,6 @@ CREATE TABLE products (
     name VARCHAR(255) NOT NULL,
     picture VARCHAR(255),
     price DECIMAL(10, 2) NOT NULL,
-    url VARCHAR(255) NOT NULL,
     stock INT DEFAULT 0,
     description TEXT,
     expiration_time TIMESTAMP,
