@@ -12,10 +12,7 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-func NewGeneral(
-	r *gin.RouterGroup,
-
-) *General {
+func NewGeneral(r *gin.RouterGroup) *General {
 	h := &General{}
 
 	newRoute(h, r)
@@ -27,7 +24,11 @@ func newRoute(h *General, r *gin.RouterGroup) {
 	r.GET("/ping", h.ping)
 	r.GET("/health", h.health)
 	r.GET("/ready", h.ready)
+	r.GET("/", h.test)
+}
 
+func (h *General) test(c *gin.Context) {
+	c.HTML(http.StatusOK, "index.html", nil)
 }
 
 func (h *General) ping(c *gin.Context) {
