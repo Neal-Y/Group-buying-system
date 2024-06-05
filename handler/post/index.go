@@ -5,10 +5,7 @@ import "github.com/gin-gonic/gin"
 type Post struct {
 }
 
-func NewPosts(
-	r *gin.RouterGroup,
-
-) *Post {
+func NewPosts(r *gin.RouterGroup) *Post {
 	h := &Post{}
 
 	newRoute(h, r)
