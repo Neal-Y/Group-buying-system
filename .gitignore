@@ -8,3 +8,6 @@
 
 # Ignore macOS system files
 .DS_Store
+
+# Ignore the vendor directory
+/vendor
