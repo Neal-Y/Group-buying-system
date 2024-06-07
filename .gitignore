@@ -1,3 +1,10 @@
 .idea
 
+# Ignore the database directory
 /data
+
+# Ignore environment variables
+.env
+
+# Ignore macOS system files
+.DS_Store
