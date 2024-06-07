@@ -7,23 +7,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"shopping-cart/config"
+	"shopping-cart/constant"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
 )
 
-// 沒有人會把這重要的東西丟這你這低能！記得refactor
-const (
-	lineAuthURL      = "https://access.line.me/oauth2/v2.1/authorize"
-	lineTokenURL     = "https://api.line.me/oauth2/v2.1/token"
-	lineProfileURL   = "https://api.line.me/v2/profile"
-	lineClientID     = "2005525590"
-	lineClientSecret = "3c4461177d114bd691d5657e15ea8ed2"
-	lineRedirectURI  = "https://8739-2001-b011-3808-9748-ec26-2b45-2150-4b6b.ngrok-free.app/api/line/callback"
-)
-
 func (h *Authorization) LineLogin(c *gin.Context) {
-	state := "randomStateString" // 應該生成隨機的state並且保存以驗證回調
-	lineURL := fmt.Sprintf("%s?response_type=code&client_id=%s&redirect_uri=%s&state=%s&scope=profile", lineAuthURL, lineClientID, lineRedirectURI, state)
+	state := "randomStateString" // 应该生成随机的state并且保存以验证回调
+	lineURL := fmt.Sprintf("%s?response_type=code&client_id=%s&redirect_uri=%s&state=%s&scope=profile%%20openid%%20email", constant.LineAuthURL, config.AppConfig.LineClientID, config.AppConfig.LineRedirectURI, state)
 	c.Redirect(http.StatusFound, lineURL)
 }
 
@@ -37,12 +29,12 @@ func (h *Authorization) LineCallback(c *gin.Context) {
 	}
 
 	// 获取access token
-	resp, err := http.PostForm(lineTokenURL, url.Values{
+	resp, err := http.PostForm(constant.LineTokenURL, url.Values{
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
-		"redirect_uri":  {lineRedirectURI},
-		"client_id":     {lineClientID},
-		"client_secret": {lineClientSecret},
+		"redirect_uri":  {config.AppConfig.LineRedirectURI},
+		"client_id":     {config.AppConfig.LineClientID},
+		"client_secret": {config.AppConfig.LineClientSecret},
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get token"})
@@ -65,7 +57,7 @@ func (h *Authorization) LineCallback(c *gin.Context) {
 	accessToken := tokenData["access_token"].(string)
 
 	// 获取用户信息
-	req, err := http.NewRequest("GET", lineProfileURL, nil)
+	req, err := http.NewRequest("GET", constant.LineProfileURL, nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create profile request"})
 		return
@@ -105,26 +97,12 @@ func (h *Authorization) LineCallback(c *gin.Context) {
 		LineToken:   accessToken,
 	}
 
-	//err = infrastructure.Db.FirstOrCreate(&user, database.User{LineID: profileData.UserID}).Error
-
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save user"})
-	//	return
-	//}
-
-	//err = infrastructure.Db.Clauses(clause.OnConflict{
-	//	Columns:   []clause.Column{{Name: "id"}},                     // key colume
-	//	DoUpdates: clause.AssignmentColumns([]string{"name", "age"}), // column needed to be updated
-	//}).Create(&users)
-
-	err = infrastructure.Db.First(&user).Error
-
+	err = infrastructure.Db.Where(database.User{LineID: profileData.UserID}).Assign(user).FirstOrCreate(&user).Error
 	if err != nil {
-		infrastructure.Db.Create(&user)
-	} else {
-		infrastructure.Db.Model(&user).Where("Line_id = ?", profileData.UserID).Update("DisplayName", profileData.DisplayName)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save or update user"})
+		return
 	}
 
 	// 设置session或token并返回用户信息
-	c.Redirect(http.StatusFound, fmt.Sprintf("https://8739-2001-b011-3808-9748-ec26-2b45-2150-4b6b.ngrok-free.app"))
+	c.Redirect(http.StatusFound, config.AppConfig.NgrokURL)
 }
