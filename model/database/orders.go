@@ -14,8 +14,8 @@ type Order struct {
 	Status       string        `json:"status" gorm:"type:enum('pending', 'completed', 'cancelled');default:'pending'"`
 	CreatedAt    time.Time     `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 	UpdatedAt    time.Time     `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
-	User         User          `json:"user" gorm:"foreignKey:UserID"`
-	OrderDetails []OrderDetail `json:"order_details" gorm:"foreignKey:OrderID"`
+	User         *User         `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	OrderDetails []OrderDetail `json:"order_details,omitempty" gorm:"foreignKey:OrderID"`
 }
 
 type OrderDetail struct {
@@ -26,8 +26,8 @@ type OrderDetail struct {
 	Price     float64   `json:"price" gorm:"type:decimal(10,2)"`
 	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
-	Order     Order     `json:"order" gorm:"foreignKey:OrderID"`
-	Product   Product   `json:"product" gorm:"foreignKey:ProductID"`
+	Order     *Order    `json:"order,omitempty" gorm:"foreignKey:OrderID"`
+	Product   *Product  `json:"product,omitempty" gorm:"foreignKey:ProductID"`
 }
 
 func (Order) TableName() string {
@@ -41,15 +41,25 @@ func (OrderDetail) TableName() string {
 func (order *Order) model() *gorm.DB { return infrastructure.Db.Model(order) }
 
 func (order *Order) Create() error {
+	order.CreatedAt = time.Now()
+	order.UpdatedAt = time.Now()
+	for i := range order.OrderDetails {
+		order.OrderDetails[i].CreatedAt = time.Now()
+		order.OrderDetails[i].UpdatedAt = time.Now()
+	}
 	return order.model().Create(order).Error
 }
 
 func (order *Order) FindByID(id int) error {
-	return order.model().First(order, id).Error
+	return order.model().Preload("User").Preload("OrderDetails.Product").First(order, id).Error
 }
 
 func (order *Order) Update(updateData *Order) error {
-	return order.model().Updates(updateData).Error
+	updateData.UpdatedAt = time.Now()
+	for i := range updateData.OrderDetails {
+		updateData.OrderDetails[i].UpdatedAt = time.Now()
+	}
+	return order.model().Model(order).Updates(updateData).Error
 }
 
 func (order *Order) Delete() error {
@@ -58,11 +68,8 @@ func (order *Order) Delete() error {
 
 func FindAllOrders() ([]Order, error) {
 	var orders []Order
-	err := infrastructure.Db.Preload("OrderDetails").Find(&orders).Error
-
-	if err != nil {
+	if err := infrastructure.Db.Preload("User").Preload("OrderDetails.Product").Find(&orders).Error; err != nil {
 		return nil, err
 	}
-
 	return orders, nil
 }
