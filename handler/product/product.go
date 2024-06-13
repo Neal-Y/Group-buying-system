@@ -9,35 +9,6 @@ import (
 	"shopping-cart/model/database"
 )
 
-func (h *Product) CreateProduct(c *gin.Context) {
-	var product database.Product
-
-	// 使用 JSON 解析请求体
-	if err := c.ShouldBindJSON(&product); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// 解析时间字符串
-	if product.ExpirationTime.IsZero() {
-		expirationDateStr := c.PostForm("expiration_time")
-		expirationDate, err := time.Parse(time.RFC3339, expirationDateStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid expiration date"})
-			return
-		}
-		product.ExpirationTime = expirationDate
-	}
-
-	// 创建产品
-	if err := product.Create(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Product created successfully", "product": product})
-}
-
 func (h *Product) GetProduct(c *gin.Context) {
 	id := c.Param("id")
 	productID, err := strconv.Atoi(id)
