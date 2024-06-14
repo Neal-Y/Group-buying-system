@@ -1,8 +1,6 @@
 package database
 
 import (
-	"gorm.io/gorm"
-	"shopping-cart/infrastructure"
 	"time"
 )
 
@@ -20,22 +18,4 @@ type User struct {
 
 func (User) TableName() string {
 	return "users"
-}
-
-func (user *User) model() *gorm.DB { return infrastructure.Db.Model(user) }
-
-func (user *User) Create() error {
-	return user.model().Create(user).Error
-}
-
-func (user *User) FindById(id int) error {
-	return user.model().First(user, id).Error
-}
-
-func (user *User) Update(updateData *User) error {
-	return user.model().Updates(updateData).Error
-}
-
-func (user *User) Delete() error {
-	return user.model().Delete(user).Error
 }
