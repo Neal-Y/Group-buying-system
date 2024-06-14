@@ -9,7 +9,7 @@ import (
 func (h *Product) UpdateProduct(c *gin.Context) {
 	id, _ := GetIDFromPath(c, "id")
 
-	var productDto datatransfer.ProductPayload
+	var productDto datatransfer.ProductUpdate
 
 	err := c.ShouldBindJSON(&productDto)
 	if err != nil {
