@@ -1,8 +1,6 @@
 package database
 
 import (
-	"gorm.io/gorm"
-	"shopping-cart/infrastructure"
 	"time"
 )
 
@@ -20,27 +18,4 @@ type Product struct {
 
 func (Product) TableName() string {
 	return "products"
-}
-
-func (product *Product) model() *gorm.DB { return infrastructure.Db.Model(product) }
-
-func (product *Product) Create() error {
-	return product.model().Create(product).Error
-}
-
-func (product *Product) FindByID(id int) error {
-	return product.model().First(product, id).Error
-}
-
-func (product *Product) Update(updateData *Product) error {
-	return product.model().Updates(updateData).Error
-}
-
-func (product *Product) Delete() error {
-	return product.model().Delete(product).Error
-}
-
-func FindAll() (products []Product, err error) {
-	err = infrastructure.Db.Find(&products).Error
-	return
 }
