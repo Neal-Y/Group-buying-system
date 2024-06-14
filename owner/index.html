@@ -70,7 +70,7 @@
         $('.delete-button').on('click', function() {
             var id = $(this).data('id');
 
-            // Delete product via AJAX
+            // Delete product_repository via AJAX
             $.ajax({
                 url: '/api/products/' + id,
                 method: 'DELETE',
