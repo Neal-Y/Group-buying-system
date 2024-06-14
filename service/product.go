@@ -9,7 +9,7 @@ import (
 )
 
 type ProductService interface {
-	UpdateProduct(id int, productDto *datatransfer.ProductPayload) (*database.Product, error)
+	UpdateProduct(id int, productDto *datatransfer.ProductUpdate) (*database.Product, error)
 	CreateProduct(productDto *datatransfer.ProductPayload) (*database.Product, error)
 	DeleteProduct(id int) error
 	FindAllProducts() ([]database.Product, error)
@@ -26,7 +26,7 @@ func NewProductService(repo repository.ProductRepository) ProductService {
 	}
 }
 
-func (s *productService) UpdateProduct(id int, productDto *datatransfer.ProductPayload) (*database.Product, error) {
+func (s *productService) UpdateProduct(id int, productDto *datatransfer.ProductUpdate) (*database.Product, error) {
 	product, err := s.productRepo.FindByID(id)
 	if err != nil {
 		return nil, err
