@@ -2,12 +2,23 @@ package product
 
 import (
 	"github.com/gin-gonic/gin"
+	"shopping-cart/repository"
+	"shopping-cart/service"
 )
 
-type Product struct{}
+type Product struct {
+	productService service.ProductService
+}
 
 func NewProductController(r *gin.RouterGroup) *Product {
 	h := &Product{}
+
+	productRepo := repository.NewProductRepository()
+
+	productService := service.NewProductService(productRepo)
+
+	h.productService = productService
+
 	newRoute(h, r)
 	return h
 }
