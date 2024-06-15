@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+<table id="productTable">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Expiration Date</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Product rows will be added here -->
+    </tbody>
+</table>
+
+<script>
+    $(function() {
+        // Example data
+        var products = [
+            {id: 1, name: 'Product1', description: 'Description1', price: 10, stock: 100, expirationTime: '2024-05-01T00:00:00Z'},
+            {id: 2, name: 'Product2', description: 'Description2', price: 20, stock: 200, expirationTime: '2024-06-01T00:00:00Z'}
+        ];
+
+        var $productTable = $('#productTable tbody');
+
+        products.forEach(function(product) {
+            var $row = $('<tr>');
+            $row.append('<td>' + product.name + '</td>');
+            $row.append('<td>' + product.description + '</td>');
+            $row.append('<td>' + product.price + '</td>');
+            $row.append('<td>' + product.stock + '</td>');
+            $row.append('<td><input type="text" class="expiration-date" data-id="' + product.id + '" value="' + product.expirationTime.split('T')[0] + '"></td>');
+            $row.append('<td><button class="update-button" data-id="' + product.id + '">Update</button></td>');
+            $row.append('<td><button class="delete-button" data-id="' + product.id + '">Delete</button></td>');
+            $productTable.append($row);
+        });
+
+        $('.expiration-date').datepicker({ dateFormat: 'yy-mm-dd' });
+
+        $('.update-button').on('click', function() {
+            var id = $(this).data('id');
+            var expirationDate = $(this).closest('tr').find('.expiration-date').val();
+
+            // Update product expiration date via AJAX
+            $.ajax({
+                url: '/api/products/' + id,
+                method: 'PATCH',
+                contentType: 'application/json',
+                data: JSON.stringify({expiration_time: expirationDate}),
+                success: function(response) {
+                    alert('Product updated successfully!');
+                },
+                error: function(error) {
+                    alert('Failed to update product!');
+                }
+            });
+        });
+
+        $('.delete-button').on('click', function() {
+            var id = $(this).data('id');
+
+            // Delete product_repository via AJAX
+            $.ajax({
+                url: '/api/products/' + id,
+                method: 'DELETE',
+                success: function(response) {
+                    alert('Product deleted successfully!');
+                    location.reload();
+                },
+                error: function(error) {
+                    alert('Failed to delete product!');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

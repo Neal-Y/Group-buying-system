@@ -5,7 +5,7 @@ CREATE TABLE products (
     price DECIMAL(10, 2) NOT NULL,
     stock INT DEFAULT 0,
     description TEXT,
-    expiration_time TIMESTAMP,
+    expiration_time DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
