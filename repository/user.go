@@ -11,6 +11,7 @@ type UserRepository interface {
 	FindByID(id int) (*database.User, error)
 	Update(user *database.User) error
 	Delete(user *database.User) error
+	FindByLineID(lineID string) (*database.User, error)
 }
 
 type userRepository struct {
@@ -37,9 +38,18 @@ func (r *userRepository) FindByID(id int) (*database.User, error) {
 }
 
 func (r *userRepository) Update(user *database.User) error {
-	return r.db.Save(user).Error
+	return r.db.Updates(user).Error
 }
 
 func (r *userRepository) Delete(user *database.User) error {
 	return r.db.Delete(user).Error
+}
+
+func (r *userRepository) FindByLineID(lineID string) (*database.User, error) {
+	var user database.User
+	err := r.db.Where("line_id = ?", lineID).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
