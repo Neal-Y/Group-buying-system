@@ -20,8 +20,7 @@ type UserService interface {
 	DeleteUser(user *database.User) error
 	FindByLineID(lineID string) (*database.User, error)
 	SaveOrUpdateUser(user *database.User) error
-	ExchangeToken(code string) (string, error)
-	GetLineProfile(accessToken string) (*database.User, error)
+	ExchangeTokenAndGetProfile(code string) (*database.User, error)
 }
 
 type userService struct {
@@ -61,7 +60,7 @@ func (s *userService) SaveOrUpdateUser(user *database.User) error {
 	return s.repo.Update(user)
 }
 
-func (s *userService) ExchangeToken(code string) (string, error) {
+func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, error) {
 	resp, err := http.PostForm(constant.LineTokenURL, url.Values{
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
@@ -70,49 +69,44 @@ func (s *userService) ExchangeToken(code string) (string, error) {
 		"client_secret": {config.AppConfig.LineClientSecret},
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var tokenData map[string]interface{}
+	var tokenData datatransfer.LineTokenResponse
 	err = json.Unmarshal(body, &tokenData)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	accessToken, ok := tokenData["access_token"].(string)
-	if !ok {
-		return "", fmt.Errorf("failed to parse access token")
+	if tokenData.AccessToken == "" {
+		return nil, fmt.Errorf("failed to parse access token")
 	}
-	return accessToken, nil
-}
 
-func (s *userService) GetLineProfile(accessToken string) (*database.User, error) {
 	req, err := http.NewRequest("GET", constant.LineProfileURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenData.AccessToken))
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err = client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var profileData datatransfer.UserPayload
-
+	var profileData datatransfer.LineProfileResponse
 	err = json.Unmarshal(body, &profileData)
 	if err != nil {
 		return nil, err
@@ -122,7 +116,7 @@ func (s *userService) GetLineProfile(accessToken string) (*database.User, error)
 		LineID:      profileData.UserID,
 		DisplayName: profileData.DisplayName,
 		Email:       profileData.Email,
-		LineToken:   accessToken,
+		LineToken:   tokenData.AccessToken,
 	}
 
 	return user, nil
