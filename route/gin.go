@@ -2,8 +2,7 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
-	"shopping-cart/handler/general"
-	"shopping-cart/handler/user"
+	"shopping-cart/handler/product"
 )
 
 func InitGinServer() (server *gin.Engine, err error) {
@@ -15,14 +14,8 @@ func InitGinServer() (server *gin.Engine, err error) {
 func GinRouter() (server *gin.Engine) {
 	server = gin.New()
 
-	server.LoadHTMLGlob("frontend/*")
-
 	api := server.Group("/api")
-
-	group := server.Group("")
-
-	general.NewGeneral(group)
-	user.NewAuthorization(api)
+	product.NewProductController(api)
 
 	return server
 }
