@@ -3,7 +3,6 @@ package route
 import (
 	"github.com/gin-gonic/gin"
 	"shopping-cart/handler/general"
-	"shopping-cart/handler/post"
 	"shopping-cart/handler/user"
 )
 
@@ -19,12 +18,9 @@ func GinRouter() (server *gin.Engine) {
 	server.LoadHTMLGlob("frontend/*")
 
 	api := server.Group("/api")
-	//orderGroup := api.Group("/orders")
-	//userGroup := api.Group("/auth")
 
 	group := server.Group("")
 
-	post.NewPosts(group)
 	general.NewGeneral(group)
 	user.NewAuthorization(api)
 
