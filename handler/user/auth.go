@@ -19,27 +19,26 @@ func (h *Authorization) LineCallback(c *gin.Context) {
 	state := c.Query("state")
 
 	if state != "randomStateString" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid state"})
+		handleLineServerError(c, "invalid state")
 		return
 	}
 
-	accessToken, err := h.service.ExchangeToken(code)
+	user, err := h.service.ExchangeTokenAndGetProfile(code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to exchange token"})
-		return
-	}
-
-	user, err := h.service.GetLineProfile(accessToken)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get profile"})
+		handleLineServerError(c, err.Error())
 		return
 	}
 
 	err = h.service.SaveOrUpdateUser(user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save or update user"})
+		handleLineServerError(c, "failed to save or update user")
 		return
 	}
 
 	c.Redirect(http.StatusFound, config.AppConfig.NgrokURL)
+}
+
+func handleLineServerError(c *gin.Context, errorMessage string) {
+	fmt.Printf("handleLineServerError called with message: %s\n", errorMessage)
+	c.Redirect(http.StatusFound, fmt.Sprintf("%s/error?message=%s", config.AppConfig.NgrokURL, errorMessage))
 }
