@@ -1,16 +1,15 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"net/url"
+	"shopping-cart/builder"
 	"shopping-cart/config"
 	"shopping-cart/constant"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer"
 	"shopping-cart/repository"
+	"shopping-cart/util"
 )
 
 type UserService interface {
@@ -61,7 +60,7 @@ func (s *userService) SaveOrUpdateUser(user *database.User) error {
 }
 
 func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, error) {
-	resp, err := http.PostForm(constant.LineTokenURL, url.Values{
+	body, err := util.PostForm(constant.LineTokenURL, url.Values{
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
 		"redirect_uri":  {config.AppConfig.LineRedirectURI},
@@ -71,53 +70,26 @@ func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, e
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var tokenData datatransfer.LineTokenResponse
-	err = json.Unmarshal(body, &tokenData)
-	if err != nil {
-		return nil, err
-	}
+	var tokenData *datatransfer.LineTokenResponse
+	err = util.ParseJSONResponse(body, &tokenData)
 
 	if tokenData.AccessToken == "" {
 		return nil, fmt.Errorf("failed to parse access token")
 	}
 
-	req, err := http.NewRequest("GET", constant.LineProfileURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenData.AccessToken))
-
-	client := &http.Client{}
-	resp, err = client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err = ioutil.ReadAll(resp.Body)
+	var profileData *datatransfer.LineProfileResponse
+	profileData, err = util.ParseIDToken(tokenData.IDToken)
 	if err != nil {
 		return nil, err
 	}
 
-	var profileData datatransfer.LineProfileResponse
-	err = json.Unmarshal(body, &profileData)
-	if err != nil {
-		return nil, err
-	}
-
-	user := &database.User{
-		LineID:      profileData.UserID,
-		DisplayName: profileData.DisplayName,
-		Email:       profileData.Email,
-		LineToken:   tokenData.AccessToken,
-	}
+	user := builder.NewUserBuilder().
+		WithLineID(profileData.UserID).
+		WithDisplayName(profileData.DisplayName).
+		WithEmail(profileData.Email).
+		WithLineToken(tokenData.AccessToken).
+		Build()
 
 	return user, nil
 }
