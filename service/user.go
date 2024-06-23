@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"net/url"
+	"net/http"
 	"shopping-cart/builder"
 	"shopping-cart/config"
 	"shopping-cart/constant"
@@ -60,13 +60,20 @@ func (s *userService) SaveOrUpdateUser(user *database.User) error {
 }
 
 func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, error) {
-	body, err := util.PostForm(constant.LineTokenURL, url.Values{
-		"grant_type":    {"authorization_code"},
-		"code":          {code},
-		"redirect_uri":  {config.AppConfig.LineRedirectURI},
-		"client_id":     {config.AppConfig.LineClientID},
-		"client_secret": {config.AppConfig.LineClientSecret},
-	})
+	httpBuilder := builder.NewHttpClient()
+
+	body, err := httpBuilder.
+		WithMethod(http.MethodPost).
+		WithURL(constant.LineTokenURL).
+		WithFormData("grant_type", "authorization_code").
+		WithFormData("code", code).
+		WithFormData("redirect_uri", config.AppConfig.LineRedirectURI).
+		WithFormData("client_id", config.AppConfig.LineClientID).
+		WithFormData("client_secret", config.AppConfig.LineClientSecret).
+		Build()
+	if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}
