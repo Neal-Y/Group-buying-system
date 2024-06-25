@@ -2,8 +2,7 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
-	"shopping-cart/handler/general"
-	"shopping-cart/handler/post"
+	"shopping-cart/handler/order"
 	"shopping-cart/handler/product"
 	"shopping-cart/handler/user"
 )
