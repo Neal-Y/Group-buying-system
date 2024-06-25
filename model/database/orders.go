@@ -1,8 +1,6 @@
 package database
 
 import (
-	"gorm.io/gorm"
-	"shopping-cart/infrastructure"
 	"time"
 )
 
@@ -36,40 +34,4 @@ func (Order) TableName() string {
 
 func (OrderDetail) TableName() string {
 	return "order_details"
-}
-
-func (order *Order) model() *gorm.DB { return infrastructure.Db.Model(order) }
-
-func (order *Order) Create() error {
-	order.CreatedAt = time.Now()
-	order.UpdatedAt = time.Now()
-	for i := range order.OrderDetails {
-		order.OrderDetails[i].CreatedAt = time.Now()
-		order.OrderDetails[i].UpdatedAt = time.Now()
-	}
-	return order.model().Create(order).Error
-}
-
-func (order *Order) FindByID(id int) error {
-	return order.model().Preload("User").Preload("OrderDetails.Product").First(order, id).Error
-}
-
-func (order *Order) Update(updateData *Order) error {
-	updateData.UpdatedAt = time.Now()
-	for i := range updateData.OrderDetails {
-		updateData.OrderDetails[i].UpdatedAt = time.Now()
-	}
-	return order.model().Model(order).Updates(updateData).Error
-}
-
-func (order *Order) Delete() error {
-	return order.model().Delete(order).Error
-}
-
-func FindAllOrders() ([]Order, error) {
-	var orders []Order
-	if err := infrastructure.Db.Preload("User").Preload("OrderDetails.Product").Find(&orders).Error; err != nil {
-		return nil, err
-	}
-	return orders, nil
 }
