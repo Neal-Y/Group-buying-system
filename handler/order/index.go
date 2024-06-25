@@ -2,12 +2,24 @@ package order
 
 import (
 	"github.com/gin-gonic/gin"
+	"shopping-cart/repository"
+	"shopping-cart/service"
 )
 
-type Order struct{}
+type Order struct {
+	orderService service.OrderService
+}
 
 func NewOrderHandler(r *gin.RouterGroup) *Order {
-	h := &Order{}
+	orderRepo := repository.NewOrderRepository()
+	productRepo := repository.NewProductRepository()
+
+	orderService := service.NewOrderService(orderRepo, productRepo)
+
+	h := &Order{
+		orderService: orderService,
+	}
+
 	newRoute(h, r)
 	return h
 }
