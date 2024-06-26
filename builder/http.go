@@ -19,8 +19,13 @@ func NewHttpClient() *HTTPClient {
 	}
 }
 
-func (b *HTTPClient) WithMethod(method string) *HTTPClient {
-	b.method = method
+func (b *HTTPClient) WithMethodPost() *HTTPClient {
+	b.method = "POST"
+	return b
+}
+
+func (b *HTTPClient) WithMethodGet() *HTTPClient {
+	b.method = "GET"
 	return b
 }
 
