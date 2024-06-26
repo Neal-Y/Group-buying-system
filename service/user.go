@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"net/http"
 	"shopping-cart/builder"
 	"shopping-cart/config"
 	"shopping-cart/constant"
@@ -63,7 +62,7 @@ func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, e
 	httpBuilder := builder.NewHttpClient()
 
 	body, err := httpBuilder.
-		WithMethod(http.MethodPost).
+		WithMethodPost().
 		WithURL(constant.LineTokenURL).
 		WithFormData("grant_type", "authorization_code").
 		WithFormData("code", code).
@@ -71,9 +70,6 @@ func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, e
 		WithFormData("client_id", config.AppConfig.LineClientID).
 		WithFormData("client_secret", config.AppConfig.LineClientSecret).
 		Build()
-	if err != nil {
-		return nil, err
-	}
 	if err != nil {
 		return nil, err
 	}
