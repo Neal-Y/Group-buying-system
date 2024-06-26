@@ -3,9 +3,12 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"net/http"
 	"shopping-cart/config"
 	"shopping-cart/model/datatransfer"
+	"strconv"
 )
 
 func ParseJSONResponse(body []byte, v interface{}) error {
@@ -14,6 +17,16 @@ func ParseJSONResponse(body []byte, v interface{}) error {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 	return nil
+}
+
+func GetIDFromPath(c *gin.Context, paramName string) (int, error) {
+	idStr := c.Param(paramName)
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid " + paramName})
+		return 0, err
+	}
+	return id, nil
 }
 
 func ParseIDToken(idToken string) (*datatransfer.LineProfileResponse, error) {

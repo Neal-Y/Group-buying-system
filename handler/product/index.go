@@ -11,13 +11,13 @@ type Product struct {
 }
 
 func NewProductController(r *gin.RouterGroup) *Product {
-	h := &Product{}
-
 	productRepo := repository.NewProductRepository()
 
 	productService := service.NewProductService(productRepo)
 
-	h.productService = productService
+	h := &Product{
+		productService: productService,
+	}
 
 	newRoute(h, r)
 	return h

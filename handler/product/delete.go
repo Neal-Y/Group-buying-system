@@ -3,10 +3,11 @@ package product
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"shopping-cart/util"
 )
 
 func (h *Product) DeleteProduct(c *gin.Context) {
-	id, _ := GetIDFromPath(c, "id")
+	id, _ := util.GetIDFromPath(c, "id")
 
 	err := h.productService.DeleteProduct(id)
 	if err != nil {

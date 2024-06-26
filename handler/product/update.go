@@ -4,10 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shopping-cart/model/datatransfer"
+	"shopping-cart/util"
 )
 
 func (h *Product) UpdateProduct(c *gin.Context) {
-	id, _ := GetIDFromPath(c, "id")
+	id, _ := util.GetIDFromPath(c, "id")
 
 	var productDto datatransfer.ProductUpdate
 
