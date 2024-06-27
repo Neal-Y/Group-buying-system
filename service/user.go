@@ -59,9 +59,10 @@ func (s *userService) SaveOrUpdateUser(user *database.User) error {
 }
 
 func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, error) {
-	httpBuilder := builder.NewHttpClient()
+	var tokenData *datatransfer.LineTokenResponse
+	httpBuilder := builder.NewHttpClient[*datatransfer.LineTokenResponse]()
 
-	body, err := httpBuilder.
+	err := httpBuilder.
 		WithMethodPost().
 		WithURL(constant.LineTokenURL).
 		WithFormData("grant_type", "authorization_code").
@@ -69,13 +70,11 @@ func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, e
 		WithFormData("redirect_uri", config.AppConfig.LineRedirectURI).
 		WithFormData("client_id", config.AppConfig.LineClientID).
 		WithFormData("client_secret", config.AppConfig.LineClientSecret).
-		Build()
+		UserHeaderFormUrlencoded().
+		Build(&tokenData)
 	if err != nil {
 		return nil, err
 	}
-
-	var tokenData *datatransfer.LineTokenResponse
-	err = util.ParseJSONResponse(body, &tokenData)
 
 	if tokenData.AccessToken == "" {
 		return nil, fmt.Errorf("failed to parse access token")
