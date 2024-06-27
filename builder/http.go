@@ -17,6 +17,7 @@ type HTTPClient[T any] struct {
 
 func NewHttpClient[T any]() *HTTPClient[T] {
 	return &HTTPClient[T]{
+		headers:  make(map[string]string),
 		formData: make(url.Values),
 	}
 }
