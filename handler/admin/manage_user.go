@@ -3,7 +3,7 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"shopping-cart/model/datatransfer"
+	"shopping-cart/model/datatransfer/user"
 	"shopping-cart/util"
 )
 
@@ -24,7 +24,7 @@ func (h *Admin) GetUser(c *gin.Context) {
 }
 
 func (h *Admin) CreateUser(c *gin.Context) {
-	var req datatransfer.UserRequest
+	var req user.Request
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -46,7 +46,7 @@ func (h *Admin) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var req datatransfer.UserRequest
+	var req user.Request
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
