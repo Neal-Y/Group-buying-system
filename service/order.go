@@ -3,15 +3,15 @@ package service
 import (
 	"errors"
 	"shopping-cart/model/database"
-	"shopping-cart/model/datatransfer"
+	"shopping-cart/model/datatransfer/order"
 	"shopping-cart/repository"
 	"time"
 )
 
 type OrderService interface {
-	CreateOrder(orderRequest *datatransfer.OrderRequest) (*database.Order, error)
+	CreateOrder(orderRequest *order.Request) (*database.Order, error)
 	GetOrderByID(id int) (*database.Order, error)
-	UpdateOrder(id int, orderRequest *datatransfer.OrderRequest) (*database.Order, error)
+	UpdateOrder(id int, orderRequest *order.Request) (*database.Order, error)
 	DeleteOrder(id int) error
 	ListAllOrders() ([]database.Order, error)
 }
@@ -28,7 +28,7 @@ func NewOrderService(orderRepo repository.OrderRepository, productRepo repositor
 	}
 }
 
-func (s *orderService) CreateOrder(orderRequest *datatransfer.OrderRequest) (*database.Order, error) {
+func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order, error) {
 	totalPrice := 0.0
 
 	for i, detail := range orderRequest.OrderDetails {
@@ -92,35 +92,42 @@ func (s *orderService) GetOrderByID(id int) (*database.Order, error) {
 	return s.orderRepo.FindByID(id)
 }
 
-func (s *orderService) UpdateOrder(id int, orderRequest *datatransfer.OrderRequest) (*database.Order, error) {
+func (s *orderService) UpdateOrder(id int, orderRequest *order.Request) (*database.Order, error) {
 	order, err := s.orderRepo.FindByID(id)
 	if err != nil {
 		return nil, errors.New("Order not found")
 	}
 
-	totalPrice := 0.0
-
-	for _, detail := range orderRequest.OrderDetails {
-		product, err := s.productRepo.FindByID(detail.ProductID)
-		if err != nil {
-			return nil, errors.New("Product not found")
-		}
-
-		if product.Stock < detail.Quantity {
-			return nil, errors.New("Insufficient stock for product " + product.Name)
-		}
-
-		if time.Now().After(product.ExpirationTime) {
-			return nil, errors.New("Product " + product.Name + " is expired")
-		}
-
-		totalPrice += float64(detail.Quantity) * product.Price
+	if orderRequest.Note != "" {
+		order.Note = orderRequest.Note
+	}
+	if orderRequest.Status != "" {
+		order.Status = orderRequest.Status
 	}
 
-	order.TotalPrice = totalPrice
-	order.Note = orderRequest.Note
+	if len(orderRequest.OrderDetails) > 0 {
+		totalPrice := 0.0
+		for _, detail := range orderRequest.OrderDetails {
+			product, err := s.productRepo.FindByID(detail.ProductID)
+			if err != nil {
+				return nil, errors.New("Product not found")
+			}
+
+			if product.Stock < detail.Quantity {
+				return nil, errors.New("Insufficient stock for product " + product.Name)
+			}
+
+			if time.Now().After(product.ExpirationTime) {
+				return nil, errors.New("Product " + product.Name + " is expired")
+			}
+
+			totalPrice += float64(detail.Quantity) * product.Price
+		}
+		order.TotalPrice = totalPrice
+		order.OrderDetails = orderRequest.OrderDetails
+	}
+
 	order.UpdatedAt = time.Now()
-	order.OrderDetails = orderRequest.OrderDetails
 
 	err = s.orderRepo.Update(order)
 	if err != nil {
