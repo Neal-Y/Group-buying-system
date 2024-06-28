@@ -13,6 +13,7 @@ type OrderRepository interface {
 	Delete(order *database.Order) error
 	FindAll() ([]database.Order, error)
 	BeginTransaction() *gorm.DB
+	FindPendingOrdersByUserIDTx(tx *gorm.DB, userID int) ([]database.Order, error)
 }
 
 type orderRepository struct {
@@ -57,4 +58,13 @@ func (r *orderRepository) FindAll() ([]database.Order, error) {
 
 func (r *orderRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
+}
+
+func (r *orderRepository) FindPendingOrdersByUserIDTx(tx *gorm.DB, userID int) ([]database.Order, error) {
+	var orders []database.Order
+	err := tx.Where("user_id = ? AND status = ?", userID, "pending").Find(&orders).Error
+	if err != nil {
+		return nil, err
+	}
+	return orders, nil
 }
