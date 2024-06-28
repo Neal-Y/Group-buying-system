@@ -3,12 +3,12 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"shopping-cart/model/datatransfer"
+	"shopping-cart/model/datatransfer/admin"
 	"shopping-cart/util"
 )
 
 func (h *Admin) Register(c *gin.Context) {
-	var req datatransfer.AdminRequest
+	var req admin.Request
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -24,7 +24,7 @@ func (h *Admin) Register(c *gin.Context) {
 }
 
 func (h *Admin) Login(c *gin.Context) {
-	var req datatransfer.AdminRequest
+	var req admin.Request
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -38,7 +38,7 @@ func (h *Admin) Login(c *gin.Context) {
 
 	c.SetCookie("Authorization", token, 3600*24*20, "", "", false, true)
 
-	c.JSON(http.StatusOK, gin.H{"message": "login successful"})
+	c.JSON(http.StatusOK, gin.H{"message": "login successfully"})
 }
 
 func (h *Admin) GetAdmin(c *gin.Context) {
@@ -64,7 +64,7 @@ func (h *Admin) UpdateAdmin(c *gin.Context) {
 		return
 	}
 
-	var req datatransfer.AdminUpdateRequest
+	var req admin.UpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
