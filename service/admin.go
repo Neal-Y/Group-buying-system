@@ -3,7 +3,8 @@ package service
 import (
 	"errors"
 	"shopping-cart/model/database"
-	"shopping-cart/model/datatransfer"
+	"shopping-cart/model/datatransfer/admin"
+	"shopping-cart/model/datatransfer/user"
 	"shopping-cart/repository"
 	"shopping-cart/util"
 
@@ -11,30 +12,32 @@ import (
 )
 
 type AdminService interface {
-	RegisterAdmin(admin *datatransfer.AdminRequest) error
+	RegisterAdmin(admin *admin.Request) error
 	Login(username, password string) (string, error)
 	GetAdminByID(id int) (*database.Admin, error)
-	UpdateAdmin(id int, req *datatransfer.AdminUpdateRequest) (*database.Admin, error)
+	UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error)
 	DeleteAdmin(id int) error
-	CreateUser(user *datatransfer.UserRequest) error
+	CreateUser(user *user.Request) error
 	GetUserByID(id int) (*database.User, error)
-	UpdateUser(id int, user *datatransfer.UserRequest) error
+	UpdateUser(id int, user *user.Request) error
 	DeleteUser(id int) error
 }
 
 type adminService struct {
 	adminRepo repository.AdminRepository
 	userRepo  repository.UserRepository
+	orderRepo repository.OrderRepository
 }
 
-func NewAdminService(adminRepo repository.AdminRepository, userRepo repository.UserRepository) AdminService {
+func NewAdminService(adminRepo repository.AdminRepository, userRepo repository.UserRepository, orderRepo repository.OrderRepository) AdminService {
 	return &adminService{
 		adminRepo: adminRepo,
 		userRepo:  userRepo,
+		orderRepo: orderRepo,
 	}
 }
 
-func (s *adminService) RegisterAdmin(req *datatransfer.AdminRequest) error {
+func (s *adminService) RegisterAdmin(req *admin.Request) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -69,7 +72,7 @@ func (s *adminService) GetAdminByID(id int) (*database.Admin, error) {
 	return s.adminRepo.FindByID(id)
 }
 
-func (s *adminService) UpdateAdmin(id int, req *datatransfer.AdminUpdateRequest) (*database.Admin, error) {
+func (s *adminService) UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error) {
 	admin, err := s.adminRepo.FindByID(id)
 	if err != nil {
 		return nil, err
@@ -102,7 +105,7 @@ func (s *adminService) DeleteAdmin(id int) error {
 	return s.adminRepo.Delete(admin)
 }
 
-func (s *adminService) CreateUser(req *datatransfer.UserRequest) error {
+func (s *adminService) CreateUser(req *user.Request) error {
 	user := &database.User{
 		LineID:      "CreatedByAdmin",
 		DisplayName: req.DisplayName,
@@ -116,7 +119,7 @@ func (s *adminService) GetUserByID(id int) (*database.User, error) {
 	return s.userRepo.FindByID(id)
 }
 
-func (s *adminService) UpdateUser(id int, req *datatransfer.UserRequest) error {
+func (s *adminService) UpdateUser(id int, req *user.Request) error {
 	user, err := s.userRepo.FindByID(id)
 	if err != nil {
 		return err
@@ -133,9 +136,24 @@ func (s *adminService) UpdateUser(id int, req *datatransfer.UserRequest) error {
 }
 
 func (s *adminService) DeleteUser(id int) error {
-	user, err := s.userRepo.FindByID(id)
+	tx := s.userRepo.BeginTransaction()
+
+	pendingOrders, err := s.orderRepo.FindPendingOrdersByUserIDTx(tx, id)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
-	return s.userRepo.Delete(user)
+	if len(pendingOrders) > 0 {
+		tx.Rollback()
+		return errors.New("user has pending orders, cannot delete")
+	}
+
+	err = s.userRepo.DeleteTx(tx, id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }
