@@ -15,9 +15,10 @@ type Admin struct {
 func NewAdminController(r *gin.RouterGroup) *Admin {
 	adminRepo := repository.NewAdminRepository()
 	userRepo := repository.NewUserRepository()
+	orderRepo := repository.NewOrderRepository()
 
 	userService := service.NewUserService(userRepo)
-	adminService := service.NewAdminService(adminRepo, userRepo)
+	adminService := service.NewAdminService(adminRepo, userRepo, orderRepo)
 
 	h := &Admin{
 		adminService: adminService,
