@@ -23,7 +23,6 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 断言 claims 为 jwt.MapClaims 类型
 		mapClaims, ok := claims.(jwt.MapClaims)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
@@ -31,7 +30,6 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 从 mapClaims 中获取 admin_id
 		if adminID, ok := mapClaims["admin_id"].(float64); ok {
 			c.Set("admin_id", int(adminID))
 		} else {
