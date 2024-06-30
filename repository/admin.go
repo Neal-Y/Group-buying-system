@@ -9,6 +9,7 @@ import (
 type AdminRepository interface {
 	Create(admin *database.Admin) error
 	FindByUsername(username string) (*database.Admin, error)
+	FindAll() ([]database.Admin, error)
 	FindByID(id int) (*database.Admin, error)
 	Update(admin *database.Admin) error
 	Delete(admin *database.Admin) error
@@ -35,6 +36,16 @@ func (r *adminRepository) FindByUsername(username string) (*database.Admin, erro
 		return nil, err
 	}
 	return &admin, nil
+}
+
+func (r *adminRepository) FindAll() ([]database.Admin, error) {
+	var admins []database.Admin
+	err := r.db.Find(&admins).Error
+	if err != nil {
+		return nil, err
+	}
+	return admins, nil
+
 }
 
 func (r *adminRepository) FindByID(id int) (*database.Admin, error) {
