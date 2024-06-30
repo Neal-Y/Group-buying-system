@@ -41,6 +41,16 @@ func (h *Admin) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "login successfully"})
 }
 
+func (h *Admin) ListAdmins(c *gin.Context) {
+	admins, err := h.adminService.GetAllAdmin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"admins": admins})
+}
+
 func (h *Admin) GetAdmin(c *gin.Context) {
 	id, err := util.GetIDFromPath(c, "id")
 	if err != nil {
