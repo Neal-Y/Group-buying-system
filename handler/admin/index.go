@@ -48,6 +48,7 @@ func adminRoute(h *Admin, r *gin.RouterGroup) {
 func manageUser(h *Admin, r *gin.RouterGroup) {
 	r.POST("/admin/users", h.CreateUser)
 	r.GET("/admin/users/:id", h.GetUser)
+	r.GET("/admin/users", h.ListUsers)
 	r.PATCH("/admin/users/:id", h.UpdateUser)
 	r.DELETE("/admin/users/:id", h.DeleteUser)
 }

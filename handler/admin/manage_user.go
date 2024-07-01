@@ -23,6 +23,17 @@ func (h *Admin) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
+func (h *Admin) ListUsers(c *gin.Context) {
+	users, err := h.adminService.GetAllUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": users})
+
+}
+
 func (h *Admin) CreateUser(c *gin.Context) {
 	var req user.Request
 	if err := c.ShouldBindJSON(&req); err != nil {
