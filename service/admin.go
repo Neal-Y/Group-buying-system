@@ -20,6 +20,7 @@ type AdminService interface {
 	DeleteAdmin(id int) error
 	CreateUser(req *user.Request) error
 	GetUserByID(id int) (*database.User, error)
+	GetAllUsers() ([]database.User, error)
 	UpdateUser(id int, req *user.Update) error
 	DeleteUser(id int) error
 }
@@ -123,6 +124,10 @@ func (s *adminService) CreateUser(req *user.Request) error {
 
 func (s *adminService) GetUserByID(id int) (*database.User, error) {
 	return s.userRepo.FindByID(id)
+}
+
+func (s *adminService) GetAllUsers() ([]database.User, error) {
+	return s.userRepo.ListUsers()
 }
 
 func (s *adminService) UpdateUser(id int, req *user.Update) error {
