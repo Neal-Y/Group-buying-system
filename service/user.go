@@ -12,11 +12,6 @@ import (
 )
 
 type UserService interface {
-	CreateUser(user *database.User) error
-	GetUserByID(id int) (*database.User, error)
-	UpdateUser(user *database.User) error
-	DeleteUser(user *database.User) error
-	FindByLineID(lineID string) (*database.User, error)
 	SaveOrUpdateUser(user *database.User) error
 	ExchangeTokenAndGetProfile(code string) (*database.User, error)
 }
@@ -27,26 +22,6 @@ type userService struct {
 
 func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{repo: repo}
-}
-
-func (s *userService) CreateUser(user *database.User) error {
-	return s.repo.Create(user)
-}
-
-func (s *userService) GetUserByID(id int) (*database.User, error) {
-	return s.repo.FindByID(id)
-}
-
-func (s *userService) UpdateUser(user *database.User) error {
-	return s.repo.Update(user)
-}
-
-func (s *userService) DeleteUser(user *database.User) error {
-	return s.repo.Delete(user)
-}
-
-func (s *userService) FindByLineID(lineID string) (*database.User, error) {
-	return s.repo.FindByLineID(lineID)
 }
 
 func (s *userService) SaveOrUpdateUser(user *database.User) error {
