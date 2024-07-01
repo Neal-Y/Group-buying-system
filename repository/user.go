@@ -17,6 +17,7 @@ type UserRepository interface {
 	SoftDeleteTx(tx *gorm.DB, id int) error
 	FindByIDIncludingDeleted(id int) (*database.User, error) // 新增的方法
 	BeginTransaction() *gorm.DB
+	ListUsers() ([]database.User, error)
 }
 
 type userRepository struct {
@@ -91,4 +92,13 @@ func (r *userRepository) SoftDeleteTx(tx *gorm.DB, id int) error {
 
 func (r *userRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
+}
+
+func (r *userRepository) ListUsers() ([]database.User, error) {
+	var users []database.User
+	err := r.db.Where("is_deleted = ?", false).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
