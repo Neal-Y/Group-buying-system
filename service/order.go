@@ -98,15 +98,10 @@ func (s *orderService) UpdateOrder(id int, orderRequest *order.Request) (*databa
 		return nil, errors.New("Order not found")
 	}
 
-	if orderRequest.Note != "" {
-		order.Note = orderRequest.Note
-	}
-	if orderRequest.Status != "" {
-		order.Status = orderRequest.Status
-	}
+	totalPrice := order.TotalPrice
 
 	if len(orderRequest.OrderDetails) > 0 {
-		totalPrice := 0.0
+		totalPrice = 0.0
 		for _, detail := range orderRequest.OrderDetails {
 			product, err := s.productRepo.FindByID(detail.ProductID)
 			if err != nil {
@@ -123,10 +118,18 @@ func (s *orderService) UpdateOrder(id int, orderRequest *order.Request) (*databa
 
 			totalPrice += float64(detail.Quantity) * product.Price
 		}
-		order.TotalPrice = totalPrice
 		order.OrderDetails = orderRequest.OrderDetails
 	}
 
+	if orderRequest.Note != "" {
+		order.Note = orderRequest.Note
+	}
+
+	if orderRequest.Status != "" {
+		order.Status = orderRequest.Status
+	}
+
+	order.TotalPrice = totalPrice
 	order.UpdatedAt = time.Now()
 
 	err = s.orderRepo.Update(order)
