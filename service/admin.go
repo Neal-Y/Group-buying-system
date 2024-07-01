@@ -158,7 +158,7 @@ func (s *adminService) DeleteUser(id int) error {
 		return errors.New("user has pending orders, cannot delete")
 	}
 
-	err = s.userRepo.DeleteTx(tx, id)
+	err = s.userRepo.SoftDeleteTx(tx, id)
 	if err != nil {
 		tx.Rollback()
 		return err
