@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
+	"shopping-cart/builder"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/admin"
 	"shopping-cart/model/datatransfer/user"
@@ -110,12 +111,13 @@ func (s *adminService) DeleteAdmin(id int) error {
 }
 
 func (s *adminService) CreateUser(req *user.Request) error {
-	user := &database.User{
-		LineID:      "CreatedByAdmin",
-		DisplayName: req.DisplayName,
-		Phone:       req.Phone,
-		IsMember:    req.IsMember,
-	}
+	user := builder.NewUserBuilder().
+		WithLineID("CreatedByAdmin").
+		WithDisplayName(req.DisplayName).
+		WithPhone(req.Phone).
+		WithIsMember(req.IsMember).
+		Build()
+
 	return s.userRepo.Create(user)
 }
 
@@ -129,14 +131,18 @@ func (s *adminService) UpdateUser(id int, req *user.Update) error {
 		return err
 	}
 
-	user.LineID = req.LineID
-	user.DisplayName = req.DisplayName
-	user.Email = req.Email
-	user.LineToken = req.LineToken
-	user.Phone = req.Phone
-	user.IsMember = req.IsMember
+	updatedUser := builder.NewUserBuilder().
+		WithLineID(req.LineID).
+		WithDisplayName(req.DisplayName).
+		WithEmail(req.Email).
+		WithLineToken(req.LineToken).
+		WithPhone(req.Phone).
+		WithIsMember(req.IsMember).
+		Build()
 
-	return s.userRepo.Update(user)
+	updatedUser.ID = user.ID
+
+	return s.userRepo.Update(updatedUser)
 }
 
 func (s *adminService) DeleteUser(id int) error {
