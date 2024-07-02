@@ -2,6 +2,7 @@ package product
 
 import (
 	"github.com/gin-gonic/gin"
+	middleware "shopping-cart/middlerware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
 )
@@ -19,7 +20,11 @@ func NewProductController(r *gin.RouterGroup) *Product {
 		productService: productService,
 	}
 
-	newRoute(h, r)
+	r.Use(middleware.JWTAuthMiddleware())
+	{
+		newRoute(h, r)
+	}
+
 	return h
 }
 
