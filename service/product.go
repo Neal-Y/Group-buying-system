@@ -62,6 +62,7 @@ func (s *productService) CreateProduct(productDto *product.Payload) (*database.P
 		ExpirationTime: productDto.ExpirationTime,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
+		IsSoldOut:      false,
 	}
 
 	err = s.productRepo.Create(product)
@@ -78,7 +79,7 @@ func (s *productService) DeleteProduct(id int) error {
 		return err
 	}
 
-	return s.productRepo.Delete(product)
+	return s.productRepo.SoftDelete(product)
 }
 
 func (s *productService) FindAllProducts() ([]database.Product, error) {
