@@ -14,6 +14,7 @@ type ProductRepository interface {
 	FindAll() ([]database.Product, error)
 	FindByName(name string, product *database.Product) error
 	BatchUpdate(products []*database.Product) error
+	FindByIDs(ids []int) ([]*database.Product, error)
 }
 
 type productRepository struct {
@@ -72,4 +73,13 @@ func (r *productRepository) BatchUpdate(products []*database.Product) error {
 		}
 	}
 	return nil
+}
+
+func (r *productRepository) FindByIDs(ids []int) ([]*database.Product, error) {
+	var products []*database.Product
+	err := r.db.Where("id IN (?)", ids).Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
 }
