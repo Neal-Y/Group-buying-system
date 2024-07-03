@@ -10,7 +10,7 @@ type OrderRepository interface {
 	Create(order *database.Order) error
 	FindByID(id int) (*database.Order, error)
 	Update(order *database.Order) error
-	Delete(order *database.Order) error
+	SoftDelete(order *database.Order) error
 	FindAll() ([]database.Order, error)
 	BeginTransaction() *gorm.DB
 }
@@ -31,7 +31,7 @@ func (r *orderRepository) Create(order *database.Order) error {
 
 func (r *orderRepository) FindByID(id int) (*database.Order, error) {
 	var order database.Order
-	err := r.db.Preload("User").Preload("OrderDetails.Product").First(&order, id).Error
+	err := r.db.Preload("User").Preload("OrderDetails.Product").Where("status != ?", "cancelled").First(&order, id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +42,14 @@ func (r *orderRepository) Update(order *database.Order) error {
 	return r.db.Save(order).Error
 }
 
-func (r *orderRepository) Delete(order *database.Order) error {
-	return r.db.Delete(order).Error
+func (r *orderRepository) SoftDelete(order *database.Order) error {
+	order.Status = "cancelled"
+	return r.db.Save(order).Error
 }
 
 func (r *orderRepository) FindAll() ([]database.Order, error) {
 	var orders []database.Order
-	err := r.db.Preload("User").Preload("OrderDetails.Product").Find(&orders).Error
+	err := r.db.Preload("User").Preload("OrderDetails.Product").Where("status != ?", "cancelled").Find(&orders).Error
 	if err != nil {
 		return nil, err
 	}
