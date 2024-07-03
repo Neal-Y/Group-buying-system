@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"shopping-cart/builder"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/order"
 	"shopping-cart/repository"
@@ -14,7 +15,6 @@ type OrderService interface {
 	UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error)
 	DeleteOrder(id int) error
 	ListAllOrders() ([]database.Order, error)
-	validateOrderRequest(orderRequest *order.Request) (float64, map[int]*database.Product, error)
 }
 
 type orderService struct {
@@ -29,17 +29,30 @@ func NewOrderService(orderRepo repository.OrderRepository, productRepo repositor
 	}
 }
 
-func (s *orderService) validateOrderRequest(orderRequest *order.Request) (float64, map[int]*database.Product, error) {
+func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64, map[int]*database.Product, error) {
 	totalPrice := 0.0
 	productMap := make(map[int]*database.Product)
 
-	for i, detail := range orderRequest.OrderDetails {
+	productIDs := make([]int, 0, len(orderRequest.OrderDetails))
+	for _, detail := range orderRequest.OrderDetails {
 		if detail.Quantity <= 0 {
 			return 0, nil, errors.New("Quantity must be greater than zero")
 		}
+		productIDs = append(productIDs, detail.ProductID)
+	}
 
-		product, err := s.productRepo.FindByID(detail.ProductID)
-		if err != nil {
+	products, err := s.productRepo.FindByIDs(productIDs)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	for _, product := range products {
+		productMap[product.ID] = product
+	}
+
+	for i, detail := range orderRequest.OrderDetails {
+		product, exists := productMap[detail.ProductID]
+		if !exists {
 			return 0, nil, errors.New("Product not found")
 		}
 
@@ -52,31 +65,33 @@ func (s *orderService) validateOrderRequest(orderRequest *order.Request) (float6
 		}
 
 		orderRequest.OrderDetails[i].Price = product.Price
-
 		totalPrice += float64(detail.Quantity) * product.Price
 
 		now := time.Now()
 		orderRequest.OrderDetails[i].CreatedAt = now
 		orderRequest.OrderDetails[i].UpdatedAt = now
-
-		productMap[detail.ProductID] = product
 	}
 
 	return totalPrice, productMap, nil
 }
 
 func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order, error) {
-	totalPrice, productMap, err := s.validateOrderRequest(orderRequest)
+	totalPrice, productMap, err := validateOrderRequest(s, orderRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	order := &database.Order{
-		UserID:       orderRequest.UserID,
-		TotalPrice:   totalPrice,
-		Note:         orderRequest.Note,
-		OrderDetails: orderRequest.OrderDetails,
-	}
+	order := builder.NewOrderBuilder().
+		SetUserID(orderRequest.UserID).
+		SetTotalPrice(totalPrice).
+		SetNote(orderRequest.Note).
+		SetStatus("pending").
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		SetOrderDetails(orderRequest.OrderDetails).
+		Build()
+
+	tx := s.orderRepo.BeginTransaction()
 
 	err = s.orderRepo.Create(order)
 	if err != nil {
@@ -94,6 +109,8 @@ func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order
 	if err != nil {
 		return nil, err
 	}
+
+	tx.Commit()
 
 	return order, nil
 }
