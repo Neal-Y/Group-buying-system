@@ -95,6 +95,7 @@ func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order
 
 	err = s.orderRepo.Create(order)
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
 
@@ -107,6 +108,7 @@ func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order
 
 	err = s.productRepo.BatchUpdate(productsToUpdate)
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
 
