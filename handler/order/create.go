@@ -3,11 +3,11 @@ package order
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"shopping-cart/model/datatransfer"
+	"shopping-cart/model/datatransfer/order"
 )
 
 func (h *Order) CreateOrder(c *gin.Context) {
-	var orderRequest datatransfer.OrderRequest
+	var orderRequest order.Request
 	err := c.ShouldBindJSON(&orderRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
