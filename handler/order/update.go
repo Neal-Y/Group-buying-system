@@ -14,14 +14,14 @@ func (h *Order) UpdateOrder(c *gin.Context) {
 		return
 	}
 
-	var orderRequest order.Request
+	var orderRequest order.StatusRequest
 	err = c.ShouldBindJSON(&orderRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	order, err := h.orderService.UpdateOrder(id, &orderRequest)
+	order, err := h.orderService.UpdateOrderStatusAndNote(id, &orderRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
