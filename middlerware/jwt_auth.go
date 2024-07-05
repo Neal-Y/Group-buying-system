@@ -10,6 +10,16 @@ import (
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
+
+		if tokenString == "" {
+			var req struct {
+				Token string `json:"token"`
+			}
+			if err := c.ShouldBindJSON(&req); err == nil {
+				tokenString = req.Token
+			}
+		}
+
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "authorization token required"})
 			c.Abort()
