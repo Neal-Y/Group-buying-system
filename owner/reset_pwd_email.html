@@ -58,7 +58,7 @@
             localStorage.setItem('resetToken', token);
         } else {
             alert('Invalid password reset link');
-            window.location.href = 'http://yourdomain.com'; // Redirect to home if no token
+            window.location.href = 'http://localhost:8080/login.html'; // Redirect to login if no token
         }
     };
 
@@ -69,10 +69,10 @@
         fetch('http://localhost:8080/api/admin/reset_password', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': token
             },
             body: JSON.stringify({
-                token: token,
                 new_password: newPassword
             })
         })
@@ -80,7 +80,7 @@
             .then(data => {
                 if (data.message === 'password reset successfully') {
                     alert('Password has been reset successfully');
-                    window.location.href = 'http://localhost:8080/api/admin/login';
+                    window.location.href = 'login.html';
                 } else {
                     alert('Error resetting password: ' + data.error);
                 }
