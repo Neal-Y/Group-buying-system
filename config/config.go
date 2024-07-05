@@ -12,6 +12,8 @@ type Config struct {
 	NgrokURL         string
 	LineRedirectURI  string
 	Secret           string
+	Gmail            string
+	GmailSecret      string
 }
 
 var AppConfig Config
@@ -30,5 +32,7 @@ func LoadConfig() {
 		NgrokURL:         viper.GetString("NGROK_URL"),
 		LineRedirectURI:  viper.GetString("NGROK_URL") + "/api/line/callback",
 		Secret:           viper.GetString("SECRET"),
+		Gmail:            viper.GetString("GMAIL"),
+		GmailSecret:      viper.GetString("GMAIL_SECRET"),
 	}
 }
