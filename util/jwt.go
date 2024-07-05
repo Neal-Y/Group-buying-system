@@ -37,3 +37,26 @@ func ParseJWT(tokenString string) (jwt.Claims, error) {
 		return nil, fmt.Errorf("invalid token")
 	}
 }
+
+func GenerateResetToken(adminID int) (string, error) {
+	claims := jwt.MapClaims{
+		"admin_id": adminID,
+		"exp":      time.Now().Add(time.Minute * 10).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret)
+}
+
+func VerifyResetToken(tokenString string) (int, error) {
+	claims, err := ParseJWT(tokenString)
+	if err != nil {
+		return 0, err
+	}
+
+	if adminID, ok := claims.(jwt.MapClaims)["admin_id"].(float64); ok {
+		return int(adminID), nil
+	}
+
+	return 0, fmt.Errorf("invalid token")
+}
