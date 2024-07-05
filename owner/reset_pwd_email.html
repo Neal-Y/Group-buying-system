@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        .container h2 {
+            margin-bottom: 20px;
+        }
+        .container input, .container button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .container button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .container button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Reset Password</h2>
+    <input type="password" id="newPassword" placeholder="Enter new password">
+    <button onclick="resetPassword()">Reset Password</button>
+</div>
+
+<script>
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        if (token) {
+            localStorage.setItem('resetToken', token);
+        } else {
+            alert('Invalid password reset link');
+            window.location.href = 'http://yourdomain.com'; // Redirect to home if no token
+        }
+    };
+
+    function resetPassword() {
+        const newPassword = document.getElementById('newPassword').value;
+        const token = localStorage.getItem('resetToken');
+
+        fetch('http://localhost:8080/api/admin/reset_password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                token: token,
+                new_password: newPassword
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'password reset successfully') {
+                    alert('Password has been reset successfully');
+                    window.location.href = 'http://localhost:8080/api/admin/login';
+                } else {
+                    alert('Error resetting password: ' + data.error);
+                }
+            }).catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
