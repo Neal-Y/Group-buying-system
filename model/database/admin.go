@@ -10,6 +10,7 @@ type Admin struct {
 	PasswordHash string    `gorm:"not null"`
 	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP"`
 	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
+	Email        string    `gorm:"unique;not null"`
 }
 
 func (Admin) TableName() string {
