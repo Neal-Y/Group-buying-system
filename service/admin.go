@@ -6,6 +6,7 @@ import (
 	"shopping-cart/model/datatransfer/admin"
 	"shopping-cart/repository"
 	"shopping-cart/util"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -14,9 +15,12 @@ type AdminService interface {
 	RegisterAdmin(admin *admin.Request) error
 	Login(username, password string) (string, error)
 	GetAdminByID(id int) (*database.Admin, error)
+	GetAdminByUsername(username string) (*database.Admin, error)
 	GetAllAdmin() ([]database.Admin, error)
 	UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error)
 	DeleteAdmin(id int) error
+	RequestPasswordReset(email string) error
+	ResetPassword(token, newPassword string) error
 }
 
 type adminService struct {
@@ -37,6 +41,9 @@ func (s *adminService) RegisterAdmin(req *admin.Request) error {
 	admin := &database.Admin{
 		Username:     req.Username,
 		PasswordHash: string(hashedPassword),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Email:        req.Email,
 	}
 	return s.adminRepo.Create(admin)
 }
@@ -58,6 +65,10 @@ func (s *adminService) Login(username, password string) (string, error) {
 	}
 
 	return token, nil
+}
+
+func (s *adminService) GetAdminByUsername(username string) (*database.Admin, error) {
+	return s.adminRepo.FindByUsername(username)
 }
 
 func (s *adminService) GetAllAdmin() ([]database.Admin, error) {
@@ -99,4 +110,43 @@ func (s *adminService) DeleteAdmin(id int) error {
 		return err
 	}
 	return s.adminRepo.Delete(admin)
+}
+
+func (s *adminService) RequestPasswordReset(email string) error {
+	admin, err := s.adminRepo.FindByEmail(email)
+	if err != nil {
+		return errors.New("admin not found")
+	}
+
+	token, err := util.GenerateResetToken(admin.ID)
+	if err != nil {
+		return err
+	}
+
+	err = util.SendResetEmail(admin.Email, token)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *adminService) ResetPassword(token, newPassword string) error {
+	adminID, err := util.VerifyResetToken(token)
+	if err != nil {
+		return errors.New("invalid or expired token")
+	}
+
+	admin, err := s.adminRepo.FindByID(adminID)
+	if err != nil {
+		return errors.New("admin not found")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	admin.PasswordHash = string(hashedPassword)
+	return s.adminRepo.Update(admin)
 }
