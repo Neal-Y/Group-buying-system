@@ -16,7 +16,9 @@ func InitGinServer() (server *gin.Engine, err error) {
 
 func GinRouter() (server *gin.Engine) {
 	server = gin.New()
+	server.LoadHTMLGlob("frontend/*")
 
+	admin.RegisterHomeRoutes(server)
 	user.RegisterHomeRoutes(server)
 
 	api := server.Group("/api")
