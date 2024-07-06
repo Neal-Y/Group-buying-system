@@ -3,11 +3,11 @@ package product
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	product2 "shopping-cart/model/datatransfer/product"
+	"shopping-cart/model/datatransfer/product"
 )
 
 func (h *Product) CreateProduct(c *gin.Context) {
-	var productDto product2.Payload
+	var productDto product.Payload
 
 	err := c.ShouldBindJSON(&productDto)
 	if err != nil {
