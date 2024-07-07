@@ -22,7 +22,7 @@ func NewAdminController(r *gin.RouterGroup) *Admin {
 		adminService: adminService,
 	}
 
-	Register(h, r)
+	loginRoute(h, r)
 
 	r.Use(middleware.JWTAuthMiddleware())
 	{
@@ -33,8 +33,7 @@ func NewAdminController(r *gin.RouterGroup) *Admin {
 	return h
 }
 
-func Register(h *Admin, r *gin.RouterGroup) {
-	r.POST("/admin/register", h.Register)
+func loginRoute(h *Admin, r *gin.RouterGroup) {
 	r.POST("/admin/login", h.Login)
 }
 
@@ -43,6 +42,7 @@ func adminRoute(h *Admin, r *gin.RouterGroup) {
 	r.GET("/admins", h.ListAdmins)
 	r.PATCH("/admin/:id", h.UpdateAdmin)
 	r.DELETE("/admin/:id", h.DeleteAdmin)
+	r.POST("/admin/register", h.Register)
 }
 
 func manageUser(h *Admin, r *gin.RouterGroup) {
