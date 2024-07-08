@@ -9,11 +9,15 @@ import (
 
 var jwtSecret = []byte(config.AppConfig.Secret)
 
-func GenerateJWT(adminID int) (string, error) {
-	claims := jwt.MapClaims{
+func exportJWTMapClaims(adminID int) jwt.MapClaims {
+	return jwt.MapClaims{
 		"admin_id": adminID,
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	}
+}
+
+func GenerateJWT(adminID int) (string, error) {
+	claims := exportJWTMapClaims(adminID)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
