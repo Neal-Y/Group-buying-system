@@ -2,7 +2,6 @@ package builder
 
 import (
 	"shopping-cart/model/database"
-	"time"
 )
 
 type UserBuilder struct {
@@ -10,10 +9,7 @@ type UserBuilder struct {
 }
 
 func NewUserBuilder() *UserBuilder {
-	return &UserBuilder{user: &database.User{
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}}
+	return &UserBuilder{user: &database.User{}}
 }
 
 func (b *UserBuilder) WithLineID(lineID string) *UserBuilder {
