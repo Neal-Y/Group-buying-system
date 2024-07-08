@@ -84,6 +84,6 @@ func (r *userRepository) BeginTransaction() *gorm.DB {
 func (r *userRepository) Upsert(user *database.User) error {
 	return r.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "line_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"display_name", "email", "line_token", "phone", "updated_at"}),
+		DoUpdates: clause.AssignmentColumns([]string{"display_name", "email", "line_token", "phone"}),
 	}).Create(user).Error
 }

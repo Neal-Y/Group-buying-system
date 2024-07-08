@@ -5,7 +5,6 @@ import (
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/product"
 	"shopping-cart/repository"
-	"time"
 )
 
 type ProductService interface {
@@ -60,8 +59,6 @@ func (s *productService) CreateProduct(productDto *product.Payload) (*database.P
 		Stock:          productDto.Stock,
 		Description:    productDto.Description,
 		ExpirationTime: productDto.ExpirationTime,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
 	}
 
 	err = s.productRepo.Create(product)
