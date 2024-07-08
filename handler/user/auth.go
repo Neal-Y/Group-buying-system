@@ -8,13 +8,13 @@ import (
 	"shopping-cart/constant"
 )
 
-func (h *Authorization) LineLogin(c *gin.Context) {
+func (h *User) LineLogin(c *gin.Context) {
 	state := "randomStateString"
 	lineURL := fmt.Sprintf("%s?response_type=code&client_id=%s&redirect_uri=%s&state=%s&scope=profile%%20openid%%20email", constant.LineAuthURL, config.AppConfig.LineClientID, config.AppConfig.LineRedirectURI, state)
 	c.Redirect(http.StatusFound, lineURL)
 }
 
-func (h *Authorization) LineCallback(c *gin.Context) {
+func (h *User) LineCallback(c *gin.Context) {
 	code := c.Query("code")
 	state := c.Query("state")
 

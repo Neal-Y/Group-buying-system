@@ -3,10 +3,8 @@ package service
 import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"shopping-cart/builder"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/admin"
-	"shopping-cart/model/datatransfer/user"
 	"shopping-cart/repository"
 	"shopping-cart/util"
 )
@@ -18,24 +16,15 @@ type AdminService interface {
 	GetAllAdmin() ([]database.Admin, error)
 	UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error)
 	DeleteAdmin(id int) error
-	CreateUser(req *user.Request) error
-	GetUserByID(id int) (*database.User, error)
-	GetAllUsers() ([]database.User, error)
-	UpdateUser(id int, req *user.Update) error
-	DeleteUser(id int) error
 }
 
 type adminService struct {
 	adminRepo repository.AdminRepository
-	userRepo  repository.UserRepository
-	orderRepo repository.OrderRepository
 }
 
-func NewAdminService(adminRepo repository.AdminRepository, userRepo repository.UserRepository, orderRepo repository.OrderRepository) AdminService {
+func NewAdminService(adminRepo repository.AdminRepository) AdminService {
 	return &adminService{
 		adminRepo: adminRepo,
-		userRepo:  userRepo,
-		orderRepo: orderRepo,
 	}
 }
 
@@ -126,10 +115,6 @@ func (s *adminService) GetUserByID(id int) (*database.User, error) {
 	return s.userRepo.FindByID(id)
 }
 
-func (s *adminService) GetAllUsers() ([]database.User, error) {
-	return s.userRepo.ListUsers()
-}
-
 func (s *adminService) UpdateUser(id int, req *user.Update) error {
 	user, err := s.userRepo.FindByID(id)
 	if err != nil {
@@ -163,7 +148,7 @@ func (s *adminService) DeleteUser(id int) error {
 		return errors.New("user has pending orders, cannot delete")
 	}
 
-	err = s.userRepo.SoftDeleteTx(tx, id)
+	err = s.userRepo.DeleteTx(tx, id)
 	if err != nil {
 		tx.Rollback()
 		return err
