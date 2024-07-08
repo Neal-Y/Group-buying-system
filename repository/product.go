@@ -14,6 +14,8 @@ type ProductRepository interface {
 	Delete(product *database.Product) error
 	FindAll() ([]database.Product, error)
 	FindByName(name string, product *database.Product) error
+	BatchUpdate(products []*database.Product) error
+	FindByIDs(ids []int) ([]*database.Product, error)
 	SoftDelete(product *database.Product) error
 }
 
@@ -70,4 +72,23 @@ func (r *productRepository) SoftDelete(product *database.Product) error {
 	product.IsSoldOut = true
 	product.SoldOutAt = &now
 	return r.db.Save(product).Error
+}
+
+func (r *productRepository) BatchUpdate(products []*database.Product) error {
+	for _, product := range products {
+		err := r.db.Updates(product).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *productRepository) FindByIDs(ids []int) ([]*database.Product, error) {
+	var products []*database.Product
+	err := r.db.Where("id IN (?)", ids).Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
 }

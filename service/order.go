@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"shopping-cart/builder"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/order"
 	"shopping-cart/repository"
@@ -11,7 +12,7 @@ import (
 type OrderService interface {
 	CreateOrder(orderRequest *order.Request) (*database.Order, error)
 	GetOrderByID(id int) (*database.Order, error)
-	UpdateOrder(id int, orderRequest *order.Request) (*database.Order, error)
+	UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error)
 	DeleteOrder(id int) error
 	ListAllOrders() ([]database.Order, error)
 }
@@ -28,29 +29,42 @@ func NewOrderService(orderRepo repository.OrderRepository, productRepo repositor
 	}
 }
 
-func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order, error) {
+func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64, map[int]*database.Product, error) {
 	totalPrice := 0.0
+	productMap := make(map[int]*database.Product)
+
+	productIDs := make([]int, 0, len(orderRequest.OrderDetails))
+	for _, detail := range orderRequest.OrderDetails {
+		if detail.Quantity <= 0 {
+			return 0, nil, errors.New("Quantity must be greater than zero")
+		}
+		productIDs = append(productIDs, detail.ProductID)
+	}
+
+	products, err := s.productRepo.FindByIDs(productIDs)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	for _, product := range products {
+		productMap[product.ID] = product
+	}
 
 	for i, detail := range orderRequest.OrderDetails {
-		if detail.Quantity <= 0 {
-			return nil, errors.New("Quantity must be greater than zero")
-		}
-
-		product, err := s.productRepo.FindByID(detail.ProductID)
-		if err != nil {
-			return nil, errors.New("Product not found")
+		product, exists := productMap[detail.ProductID]
+		if !exists {
+			return 0, nil, errors.New("Product not found")
 		}
 
 		if product.Stock < detail.Quantity {
-			return nil, errors.New("Insufficient stock for product " + product.Name)
+			return 0, nil, errors.New("Insufficient stock for product " + product.Name)
 		}
 
 		if time.Now().After(product.ExpirationTime) {
-			return nil, errors.New("Product " + product.Name + " is expired")
+			return 0, nil, errors.New("Product " + product.Name + " is expired")
 		}
 
 		orderRequest.OrderDetails[i].Price = product.Price
-
 		totalPrice += float64(detail.Quantity) * product.Price
 
 		now := time.Now()
@@ -58,31 +72,47 @@ func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order
 		orderRequest.OrderDetails[i].UpdatedAt = now
 	}
 
-	order := &database.Order{
-		UserID:       orderRequest.UserID,
-		TotalPrice:   totalPrice,
-		Note:         orderRequest.Note,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-		OrderDetails: orderRequest.OrderDetails,
-	}
+	return totalPrice, productMap, nil
+}
 
-	err := s.orderRepo.Create(order)
+func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order, error) {
+	totalPrice, productMap, err := validateOrderRequest(s, orderRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, detail := range order.OrderDetails {
-		product, err := s.productRepo.FindByID(detail.ProductID)
-		if err != nil {
-			return nil, err
-		}
-		product.Stock -= detail.Quantity
-		err = s.productRepo.Update(product)
-		if err != nil {
-			return nil, err
-		}
+	order := builder.NewOrderBuilder().
+		SetUserID(orderRequest.UserID).
+		SetTotalPrice(totalPrice).
+		SetNote(orderRequest.Note).
+		SetStatus("pending").
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		SetOrderDetails(orderRequest.OrderDetails).
+		Build()
+
+	tx := s.orderRepo.BeginTransaction()
+
+	err = s.orderRepo.Create(order)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
 	}
+
+	var productsToUpdate []*database.Product
+	for _, detail := range order.OrderDetails {
+		product := productMap[detail.ProductID]
+		product.Stock -= detail.Quantity
+		productsToUpdate = append(productsToUpdate, product)
+	}
+
+	err = s.productRepo.BatchUpdate(productsToUpdate)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	tx.Commit()
 
 	return order, nil
 }
@@ -91,61 +121,23 @@ func (s *orderService) GetOrderByID(id int) (*database.Order, error) {
 	return s.orderRepo.FindByID(id)
 }
 
-func (s *orderService) UpdateOrder(id int, orderRequest *order.Request) (*database.Order, error) {
+func (s *orderService) UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error) {
 	order, err := s.orderRepo.FindByID(id)
 	if err != nil {
 		return nil, errors.New("Order not found")
-	}
-
-	totalPrice := order.TotalPrice
-
-	if len(orderRequest.OrderDetails) > 0 {
-		totalPrice = 0.0
-		for _, detail := range orderRequest.OrderDetails {
-			product, err := s.productRepo.FindByID(detail.ProductID)
-			if err != nil {
-				return nil, errors.New("Product not found")
-			}
-
-			if product.Stock < detail.Quantity {
-				return nil, errors.New("Insufficient stock for product " + product.Name)
-			}
-
-			if time.Now().After(product.ExpirationTime) {
-				return nil, errors.New("Product " + product.Name + " is expired")
-			}
-
-			totalPrice += float64(detail.Quantity) * product.Price
-		}
-		order.OrderDetails = orderRequest.OrderDetails
-	}
-
-	if orderRequest.Note != "" {
-		order.Note = orderRequest.Note
 	}
 
 	if orderRequest.Status != "" {
 		order.Status = orderRequest.Status
 	}
 
-	order.TotalPrice = totalPrice
-	order.UpdatedAt = time.Now()
+	if orderRequest.Note != "" {
+		order.Note = orderRequest.Note
+	}
 
 	err = s.orderRepo.Update(order)
 	if err != nil {
 		return nil, err
-	}
-
-	for _, detail := range order.OrderDetails {
-		product, err := s.productRepo.FindByID(detail.ProductID)
-		if err != nil {
-			return nil, err
-		}
-		product.Stock -= detail.Quantity
-		err = s.productRepo.Update(product)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return order, nil
@@ -173,7 +165,7 @@ func (s *orderService) DeleteOrder(id int) error {
 		}
 	}
 
-	err = s.orderRepo.Delete(order)
+	err = s.orderRepo.SoftDelete(order)
 	if err != nil {
 		tx.Rollback()
 		return err
