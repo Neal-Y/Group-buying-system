@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
 )
@@ -15,6 +16,7 @@ type UserRepository interface {
 	FindByLineID(lineID string) (*database.User, error)
 	DeleteTx(tx *gorm.DB, id int) error
 	BeginTransaction() *gorm.DB
+	Upsert(user *database.User) error
 }
 
 type userRepository struct {
@@ -77,4 +79,11 @@ func (r *userRepository) DeleteTx(tx *gorm.DB, id int) error {
 
 func (r *userRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
+}
+
+func (r *userRepository) Upsert(user *database.User) error {
+	return r.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "line_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"display_name", "email", "line_token", "phone", "updated_at"}),
+	}).Create(user).Error
 }

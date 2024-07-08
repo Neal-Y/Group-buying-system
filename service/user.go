@@ -33,14 +33,13 @@ func NewUserService(repo repository.UserRepository) UserService {
 }
 
 func (s *userService) SaveOrUpdateUser(user *database.User) error {
-	existingUser, err := s.repo.FindByLineID(user.LineID)
-	if err != nil {
-		user.CreatedAt = time.Now()
-		user.UpdatedAt = time.Now()
-		return s.repo.Create(user)
+	user.UpdatedAt = time.Now()
+
+	if user.ID == 0 {
+		user.CreatedAt = user.UpdatedAt
 	}
-	user.ID = existingUser.ID
-	return s.repo.Update(user)
+
+	return s.repo.Upsert(user)
 }
 
 func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, error) {
