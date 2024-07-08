@@ -21,9 +21,9 @@ func GinRouter() (server *gin.Engine) {
 
 	api := server.Group("/api")
 
-	user.NewAuthorization(api)
 	product.NewProductController(api)
 	order.NewOrderHandler(api)
+	user.NewAuthorization(api)
 	admin.NewAdminController(api)
 
 	return server
