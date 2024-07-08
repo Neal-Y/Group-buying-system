@@ -20,18 +20,23 @@ func NewProductController(r *gin.RouterGroup) *Product {
 		productService: productService,
 	}
 
+	newRoute(h, r)
+
 	r.Use(middleware.JWTAuthMiddleware())
 	{
-		newRoute(h, r)
+		adminRoute(h, r)
 	}
 
 	return h
 }
 
 func newRoute(h *Product, r *gin.RouterGroup) {
-	r.POST("/products", h.CreateProduct)
 	r.GET("/products/:id", h.GetProduct)
-	r.GET("/products", h.GetAllProducts)
-	r.PATCH("/products/:id", h.UpdateProduct)
-	r.DELETE("/products/:id", h.DeleteProduct)
+}
+
+func adminRoute(h *Product, r *gin.RouterGroup) {
+	r.POST("admin/products", h.CreateProduct)
+	r.GET("admin/products", h.GetAllProducts)
+	r.PATCH("admin/products/:id", h.UpdateProduct)
+	r.DELETE("admin/products/:id", h.DeleteProduct)
 }
