@@ -21,6 +21,7 @@ type UserService interface {
 	GetUsers() ([]database.User, error)
 	UpdateUser(id int, req *user.Update) error
 	DeleteUser(id int) error
+	ListBlockedUsers() ([]database.User, error)
 }
 
 type userService struct {
@@ -100,7 +101,7 @@ func (s *userService) GetUserByID(id int) (*database.User, error) {
 }
 
 func (s *userService) GetUsers() ([]database.User, error) {
-	return s.repo.FindAll()
+	return s.repo.ListUsers()
 }
 
 func (s *userService) UpdateUser(id int, req *user.Update) error {
@@ -144,4 +145,8 @@ func (s *userService) DeleteUser(id int) error {
 
 	tx.Commit()
 	return nil
+}
+
+func (s *userService) ListBlockedUsers() ([]database.User, error) {
+	return s.repo.FindIncludingDeleted()
 }
