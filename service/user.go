@@ -28,8 +28,8 @@ type userService struct {
 	order repository.OrderRepository
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
-	return &userService{repo: repo}
+func NewUserService(repo repository.UserRepository, order repository.OrderRepository) UserService {
+	return &userService{repo: repo, order: order}
 }
 
 func (s *userService) SaveOrUpdateUser(user *database.User) error {
@@ -89,6 +89,9 @@ func (s *userService) CreateUser(req *user.Request) error {
 		WithIsMember(req.IsMember).
 		Build()
 
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+
 	return s.repo.Create(user)
 }
 
@@ -133,7 +136,7 @@ func (s *userService) DeleteUser(id int) error {
 		return errors.New("user has pending orders, cannot delete")
 	}
 
-	err = s.repo.DeleteTx(tx, id)
+	err = s.repo.SoftDeleteTx(tx, id)
 	if err != nil {
 		tx.Rollback()
 		return err
