@@ -25,22 +25,16 @@ type UserService interface {
 }
 
 type userService struct {
-	repo  repository.UserRepository
+	user  repository.UserRepository
 	order repository.OrderRepository
 }
 
-func NewUserService(repo repository.UserRepository, order repository.OrderRepository) UserService {
-	return &userService{repo: repo, order: order}
+func NewUserService(user repository.UserRepository, order repository.OrderRepository) UserService {
+	return &userService{user: user, order: order}
 }
 
 func (s *userService) SaveOrUpdateUser(user *database.User) error {
-	user.UpdatedAt = time.Now()
-
-	if user.ID == 0 {
-		user.CreatedAt = user.UpdatedAt
-	}
-
-	return s.repo.Upsert(user)
+	return s.user.Upsert(user)
 }
 
 func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, error) {
@@ -89,22 +83,19 @@ func (s *userService) CreateUser(req *user.Request) error {
 		WithIsMember(req.IsMember).
 		Build()
 
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
-
-	return s.repo.Create(user)
+	return s.user.Create(user)
 }
 
 func (s *userService) GetUserByID(id int) (*database.User, error) {
-	return s.repo.FindByID(id)
+	return s.user.FindByID(id)
 }
 
 func (s *userService) GetUsers() ([]database.User, error) {
-	return s.repo.ListUsers()
+	return s.user.FindAll()
 }
 
 func (s *userService) UpdateUser(id int, req *user.Update) error {
-	user, err := s.repo.FindByID(id)
+	user, err := s.user.FindByID(id)
 	if err != nil {
 		return err
 	}
@@ -120,11 +111,11 @@ func (s *userService) UpdateUser(id int, req *user.Update) error {
 
 	updatedUser.ID = user.ID
 
-	return s.repo.Update(updatedUser)
+	return s.user.Update(updatedUser)
 }
 
 func (s *userService) DeleteUser(id int) error {
-	tx := s.repo.BeginTransaction()
+	tx := s.user.BeginTransaction()
 
 	pendingOrders, err := s.order.FindPendingOrdersByUserIDTx(tx, id)
 	if err != nil {
@@ -136,7 +127,7 @@ func (s *userService) DeleteUser(id int) error {
 		return errors.New("user has pending orders, cannot delete")
 	}
 
-	err = s.repo.SoftDeleteTx(tx, id)
+	err = s.user.SoftDeleteTx(tx, id)
 	if err != nil {
 		tx.Rollback()
 		return err
