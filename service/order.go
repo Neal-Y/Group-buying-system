@@ -66,10 +66,6 @@ func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64
 
 		orderRequest.OrderDetails[i].Price = product.Price
 		totalPrice += float64(detail.Quantity) * product.Price
-
-		now := time.Now()
-		orderRequest.OrderDetails[i].CreatedAt = now
-		orderRequest.OrderDetails[i].UpdatedAt = now
 	}
 
 	return totalPrice, productMap, nil
@@ -86,8 +82,6 @@ func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order
 		SetTotalPrice(totalPrice).
 		SetNote(orderRequest.Note).
 		SetStatus("pending").
-		SetCreatedAt(time.Now()).
-		SetUpdatedAt(time.Now()).
 		SetOrderDetails(orderRequest.OrderDetails).
 		Build()
 

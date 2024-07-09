@@ -14,8 +14,9 @@ type User struct {
 
 func NewAuthorization(r *gin.RouterGroup) *User {
 	userRepo := repository.NewUserRepository()
+	orderRepo := repository.NewOrderRepository()
 
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, orderRepo)
 
 	h := &User{
 		service: userService,

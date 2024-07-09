@@ -2,7 +2,6 @@ package builder
 
 import (
 	"shopping-cart/model/database"
-	"time"
 )
 
 type OrderBuilder struct {
@@ -30,16 +29,6 @@ func (b *OrderBuilder) SetNote(note string) *OrderBuilder {
 
 func (b *OrderBuilder) SetStatus(status string) *OrderBuilder {
 	b.order.Status = status
-	return b
-}
-
-func (b *OrderBuilder) SetCreatedAt(createdAt time.Time) *OrderBuilder {
-	b.order.CreatedAt = createdAt
-	return b
-}
-
-func (b *OrderBuilder) SetUpdatedAt(updatedAt time.Time) *OrderBuilder {
-	b.order.UpdatedAt = updatedAt
 	return b
 }
 
