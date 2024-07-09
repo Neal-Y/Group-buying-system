@@ -25,6 +25,7 @@ func GinRouter() (server *gin.Engine) {
 
 	product.NewProductController(api)
 	order.NewOrderHandler(api)
+
 	user.NewAuthorization(api)
 	admin.NewAdminController(api)
 

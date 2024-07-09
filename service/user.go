@@ -20,6 +20,7 @@ type UserService interface {
 	GetUsers() ([]database.User, error)
 	UpdateUser(id int, req *user.Update) error
 	DeleteUser(id int) error
+	ListBlockedUsers() ([]database.User, error)
 }
 
 type userService struct {
@@ -125,7 +126,7 @@ func (s *userService) DeleteUser(id int) error {
 		return errors.New("user has pending orders, cannot delete")
 	}
 
-	err = s.user.DeleteTx(tx, id)
+	err = s.user.SoftDeleteTx(tx, id)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -133,4 +134,8 @@ func (s *userService) DeleteUser(id int) error {
 
 	tx.Commit()
 	return nil
+}
+
+func (s *userService) ListBlockedUsers() ([]database.User, error) {
+	return s.user.FindAll()
 }

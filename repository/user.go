@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm/clause"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
+	"time"
 )
 
 type UserRepository interface {
@@ -12,9 +13,8 @@ type UserRepository interface {
 	FindByID(id int) (*database.User, error)
 	FindAll() ([]database.User, error)
 	Update(user *database.User) error
-	Delete(user *database.User) error
 	FindByLineID(lineID string) (*database.User, error)
-	DeleteTx(tx *gorm.DB, id int) error
+	SoftDeleteTx(tx *gorm.DB, id int) error
 	BeginTransaction() *gorm.DB
 	Upsert(user *database.User) error
 }
@@ -55,10 +55,6 @@ func (r *userRepository) Update(user *database.User) error {
 	return r.db.Updates(user).Error
 }
 
-func (r *userRepository) Delete(user *database.User) error {
-	return r.db.Delete(user).Error
-}
-
 func (r *userRepository) FindByLineID(lineID string) (*database.User, error) {
 	var user database.User
 	err := r.db.Where("line_id = ?", lineID).First(&user).Error
@@ -68,13 +64,16 @@ func (r *userRepository) FindByLineID(lineID string) (*database.User, error) {
 	return &user, nil
 }
 
-func (r *userRepository) DeleteTx(tx *gorm.DB, id int) error {
+func (r *userRepository) SoftDeleteTx(tx *gorm.DB, id int) error {
 	var user database.User
 	err := tx.First(&user, id).Error
 	if err != nil {
 		return err
 	}
-	return tx.Delete(&user).Error
+	now := time.Now().UTC()
+	user.DeletedAt = &now
+	user.IsDeleted = true
+	return tx.Save(&user).Error
 }
 
 func (r *userRepository) BeginTransaction() *gorm.DB {

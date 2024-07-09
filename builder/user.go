@@ -1,6 +1,8 @@
 package builder
 
-import "shopping-cart/model/database"
+import (
+	"shopping-cart/model/database"
+)
 
 type UserBuilder struct {
 	user *database.User
