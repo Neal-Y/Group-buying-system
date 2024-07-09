@@ -7,9 +7,6 @@ import (
 	"shopping-cart/model/datatransfer/admin"
 	"shopping-cart/repository"
 	"shopping-cart/util"
-	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminService interface {
@@ -42,8 +39,6 @@ func (s *adminService) RegisterAdmin(req *admin.Request) error {
 	admin := &database.Admin{
 		Username:     req.Username,
 		PasswordHash: string(hashedPassword),
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
 		Email:        req.Email,
 	}
 	return s.adminRepo.Create(admin)
