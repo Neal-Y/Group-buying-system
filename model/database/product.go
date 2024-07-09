@@ -12,8 +12,6 @@ type Product struct {
 	Stock          int        `json:"stock" gorm:"type:int;default:0"`
 	Description    string     `json:"description" gorm:"type:text"`
 	ExpirationTime time.Time  `json:"expiration_time" gorm:"type:datetime"`
-	CreatedAt      time.Time  `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-	UpdatedAt      time.Time  `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
 	IsSoldOut      bool       `json:"is_sold_out" gorm:"default:false"`
 	SoldOutAt      *time.Time `json:"sold_out_at" gorm:"default:NULL"`
 }
