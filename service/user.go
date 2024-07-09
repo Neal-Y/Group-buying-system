@@ -10,7 +10,6 @@ import (
 	"shopping-cart/model/datatransfer/user"
 	"shopping-cart/repository"
 	"shopping-cart/util"
-	"time"
 )
 
 type UserService interface {
@@ -138,5 +137,5 @@ func (s *userService) DeleteUser(id int) error {
 }
 
 func (s *userService) ListBlockedUsers() ([]database.User, error) {
-	return s.repo.FindIncludingDeleted()
+	return s.user.FindAll()
 }
