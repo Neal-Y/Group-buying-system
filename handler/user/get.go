@@ -31,3 +31,13 @@ func (h *User) GetUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"users": users})
 }
+
+func (h *User) ListBlockedUsers(c *gin.Context) {
+	users, err := h.service.ListBlockedUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": users})
+}
