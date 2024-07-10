@@ -11,7 +11,7 @@ import (
 
 type AdminService interface {
 	RegisterAdmin(admin *admin.Request) error
-	Login(username, password string) (string, error)
+	Login(req *admin.Login) (string, error)
 	GetAdminByID(id int) (*database.Admin, error)
 	GetAdminByUsername(username string) (*database.Admin, error)
 	GetAllAdmin() ([]database.Admin, error)
@@ -43,7 +43,9 @@ func (s *adminService) RegisterAdmin(req *admin.Request) error {
 	return s.adminRepo.Create(admin)
 }
 
-func (s *adminService) Login(username, password string) (string, error) {
+func (s *adminService) Login(req *admin.Login) (string, error) {
+	username, password := req.Username, req.Password
+
 	admin, err := s.adminRepo.FindByUsername(username)
 	if err != nil {
 		return "", errors.New("invalid username or password")
