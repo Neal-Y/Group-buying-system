@@ -53,7 +53,7 @@ func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64
 	for i, detail := range orderRequest.OrderDetails {
 		product, exists := productMap[detail.ProductID]
 		if !exists {
-			return 0, nil, errors.New("Product not found")
+			return 0, nil, errors.New("Product not found or already sold out")
 		}
 
 		if product.Stock < detail.Quantity {
