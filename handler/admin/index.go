@@ -2,8 +2,7 @@ package admin
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
-	middleware "shopping-cart/middlerware"
+	"shopping-cart/middleware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
 )
@@ -22,13 +21,8 @@ func NewAdminController(r *gin.RouterGroup) *Admin {
 	}
 
 	loginRoute(h, r)
-
+	adminRoute(h, r)
 	resetPasswordRoute(h, r)
-
-	r.Use(middleware.JWTAuthMiddleware())
-	{
-		adminRoute(h, r)
-	}
 
 	return h
 }
@@ -38,11 +32,13 @@ func loginRoute(h *Admin, r *gin.RouterGroup) {
 }
 
 func adminRoute(h *Admin, r *gin.RouterGroup) {
-	r.GET("/admin/:id", h.GetAdmin)
-	r.GET("/admins", h.ListAdmins)
-	r.PATCH("/admin/:id", h.UpdateAdmin)
-	r.DELETE("/admin/:id", h.DeleteAdmin)
-	r.POST("/admin/register", h.Register)
+	adminRoute := r.Group("/admin")
+	adminRoute.Use(middleware.JWTAuthMiddleware())
+	adminRoute.GET("/:id", h.GetAdmin)
+	adminRoute.GET("", h.ListAdmins)
+	adminRoute.PATCH("/:id", h.UpdateAdmin)
+	adminRoute.DELETE("/:id", h.DeleteAdmin)
+	adminRoute.POST("/register", h.Register)
 }
 
 func resetPasswordRoute(h *Admin, r *gin.RouterGroup) {

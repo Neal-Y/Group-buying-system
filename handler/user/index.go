@@ -3,7 +3,7 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	middleware "shopping-cart/middlerware"
+	"shopping-cart/middleware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
 )
@@ -23,11 +23,7 @@ func NewAuthorization(r *gin.RouterGroup) *User {
 	}
 
 	newRoute(h, r)
-
-	r.Use(middleware.JWTAuthMiddleware())
-	{
-		manageUser(h, r)
-	}
+	manageUser(h, r)
 
 	return h
 }
@@ -38,12 +34,14 @@ func newRoute(h *User, r *gin.RouterGroup) {
 }
 
 func manageUser(h *User, r *gin.RouterGroup) {
-	r.POST("/admin/users", h.CreateUser)
-	r.GET("/admin/users/:id", h.GetUser)
-	r.GET("/admin/users", h.GetUsers)
-	r.GET("/admin/including_blocked/users", h.ListBlockedUsers)
-	r.PATCH("/admin/users/:id", h.UpdateUser)
-	r.DELETE("/admin/users/:id", h.DeleteUser)
+	adminGroup := r.Group("/admin/users")
+	adminGroup.Use(middleware.JWTAuthMiddleware())
+	adminGroup.POST("", h.CreateUser)
+	adminGroup.GET("/:id", h.GetUser)
+	adminGroup.GET("", h.GetUsers)
+	adminGroup.GET("/including_blocked", h.ListBlockedUsers)
+	adminGroup.PATCH("/:id", h.UpdateUser)
+	adminGroup.DELETE("/:id", h.DeleteUser)
 }
 
 func RegisterHomeRoutes(server *gin.Engine) {
