@@ -2,7 +2,7 @@ package admin
 
 import (
 	"github.com/gin-gonic/gin"
-	middleware "shopping-cart/middlerware"
+	"shopping-cart/middleware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
 )

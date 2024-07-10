@@ -3,7 +3,7 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	middleware "shopping-cart/middlerware"
+	"shopping-cart/middleware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
 )

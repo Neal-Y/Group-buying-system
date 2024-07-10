@@ -2,7 +2,7 @@ package product
 
 import (
 	"github.com/gin-gonic/gin"
-	middleware "shopping-cart/middlerware"
+	"shopping-cart/middleware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
 )
@@ -35,8 +35,10 @@ func newRoute(h *Product, r *gin.RouterGroup) {
 }
 
 func adminRoute(h *Product, r *gin.RouterGroup) {
-	r.POST("admin/products", h.CreateProduct)
-	r.GET("admin/products", h.GetAllProducts)
-	r.PATCH("admin/products/:id", h.UpdateProduct)
-	r.DELETE("admin/products/:id", h.DeleteProduct)
+	adminRoute := r.Group("/admin/products")
+	adminRoute.Use(middleware.JWTAuthMiddleware())
+	adminRoute.POST("", h.CreateProduct)
+	adminRoute.GET("", h.GetAllProducts)
+	adminRoute.PATCH("/:id", h.UpdateProduct)
+	adminRoute.DELETE("/:id", h.DeleteProduct)
 }
