@@ -7,13 +7,13 @@ import (
 )
 
 func (h *Admin) Login(c *gin.Context) {
-	var req admin.Request
+	var req admin.Login
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	token, err := h.adminService.Login(req.Username, req.Password)
+	token, err := h.adminService.Login(&req)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
