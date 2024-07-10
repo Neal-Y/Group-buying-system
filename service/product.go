@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"shopping-cart/builder"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/product"
 	"shopping-cart/repository"
@@ -31,14 +32,18 @@ func (s *productService) UpdateProduct(id int, productDto *product.Update) (*dat
 		return nil, err
 	}
 
-	product.Name = productDto.Name
-	product.Picture = productDto.Picture
-	product.Price = productDto.Price
-	product.Stock = productDto.Stock
-	product.Description = productDto.Description
-	product.ExpirationTime = productDto.ExpirationTime
+	product = builder.NewProductBuilder().
+		SetName(productDto.Name).
+		SetPicture(productDto.Picture).
+		SetPrice(productDto.Price).
+		SetStock(productDto.Stock).
+		SetDescription(productDto.Description).
+		SetExpirationTime(productDto.ExpirationTime).
+		Build()
 
-	if err := s.productRepo.Update(product); err != nil {
+	err = s.productRepo.Update(product)
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -52,17 +57,17 @@ func (s *productService) CreateProduct(productDto *product.Payload) (*database.P
 		return nil, errors.New("product name already exists")
 	}
 
-	product := &database.Product{
-		Name:           productDto.Name,
-		Picture:        productDto.Picture,
-		Price:          productDto.Price,
-		Stock:          productDto.Stock,
-		Description:    productDto.Description,
-		ExpirationTime: productDto.ExpirationTime,
-		IsSoldOut:      false,
-	}
+	product := builder.NewProductBuilder().
+		SetName(productDto.Name).
+		SetPicture(productDto.Picture).
+		SetPrice(productDto.Price).
+		SetStock(productDto.Stock).
+		SetDescription(productDto.Description).
+		SetExpirationTime(productDto.ExpirationTime).
+		Build()
 
 	err = s.productRepo.Create(product)
+
 	if err != nil {
 		return nil, err
 	}
