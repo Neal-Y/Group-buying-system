@@ -92,6 +92,9 @@ func (s *adminService) UpdateAdmin(id int, req *admin.UpdateRequest) (*database.
 		}
 		admin.PasswordHash = string(hashedPassword)
 	}
+	if req.Email != "" {
+		admin.Email = req.Email
+	}
 
 	err = s.adminRepo.Update(admin)
 	if err != nil {
