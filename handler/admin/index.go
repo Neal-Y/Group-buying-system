@@ -42,9 +42,9 @@ func adminRoute(h *Admin, r *gin.RouterGroup) {
 }
 
 func resetPasswordRoute(h *Admin, r *gin.RouterGroup) {
-	r.POST("/admin/get_email", h.GetAdminEmail)
-	r.POST("/admin/request_password_reset", h.RequestPasswordReset)
-	r.POST("/admin/reset_password", middleware.JWTAuthMiddleware(), h.ResetPassword)
+	r.POST("/get_email", h.GetAdminEmail)
+	r.POST("/request_password_reset", h.RequestPasswordReset)
+	r.POST("/reset_password", h.ResetPassword)
 }
 
 func RegisterHomeRoutes(server *gin.Engine) {
