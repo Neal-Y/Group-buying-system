@@ -13,7 +13,6 @@ type AdminRepository interface {
 	FindByEmail(email string) (*database.Admin, error)
 	FindByID(id int) (*database.Admin, error)
 	Update(admin *database.Admin) error
-	Delete(admin *database.Admin) error
 }
 
 type adminRepository struct {
@@ -69,8 +68,4 @@ func (r *adminRepository) FindByID(id int) (*database.Admin, error) {
 
 func (r *adminRepository) Update(admin *database.Admin) error {
 	return r.db.Save(admin).Error
-}
-
-func (r *adminRepository) Delete(admin *database.Admin) error {
-	return r.db.Delete(admin).Error
 }
