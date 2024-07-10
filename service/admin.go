@@ -16,7 +16,6 @@ type AdminService interface {
 	GetAdminByUsername(username string) (*database.Admin, error)
 	GetAllAdmin() ([]database.Admin, error)
 	UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error)
-	DeleteAdmin(id int) error
 	RequestPasswordReset(email string) error
 	ResetPassword(token, newPassword string) error
 }
@@ -98,14 +97,6 @@ func (s *adminService) UpdateAdmin(id int, req *admin.UpdateRequest) (*database.
 	}
 
 	return admin, nil
-}
-
-func (s *adminService) DeleteAdmin(id int) error {
-	admin, err := s.adminRepo.FindByID(id)
-	if err != nil {
-		return err
-	}
-	return s.adminRepo.Delete(admin)
 }
 
 func (s *adminService) RequestPasswordReset(email string) error {

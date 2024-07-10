@@ -30,6 +30,7 @@ func NewAdminController(r *gin.RouterGroup) *Admin {
 
 func loginRoute(h *Admin, r *gin.RouterGroup) {
 	r.POST("/admin/login", h.Login)
+	r.POST("/register", h.Register) // 只有剛開始的時候才會用到之後會關掉router
 }
 
 func adminRoute(h *Admin, r *gin.RouterGroup) {
@@ -38,8 +39,6 @@ func adminRoute(h *Admin, r *gin.RouterGroup) {
 	adminRoute.GET("/:id", h.GetAdmin)
 	adminRoute.GET("", h.ListAdmins)
 	adminRoute.PATCH("/:id", h.UpdateAdmin)
-	adminRoute.DELETE("/:id", h.DeleteAdmin)
-	adminRoute.POST("/register", h.Register)
 }
 
 func resetPasswordRoute(h *Admin, r *gin.RouterGroup) {
