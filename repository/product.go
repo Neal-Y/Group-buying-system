@@ -11,7 +11,6 @@ type ProductRepository interface {
 	FindByID(id int) (*database.Product, error)
 	Update(product *database.Product) error
 	Create(product *database.Product) error
-	Delete(product *database.Product) error
 	FindAll() ([]database.Product, error)
 	FindByName(name string, product *database.Product) error
 	BatchUpdate(products []*database.Product) error
@@ -48,10 +47,6 @@ func (r *productRepository) Update(product *database.Product) error {
 	return r.db.Updates(product).Error
 }
 
-func (r *productRepository) Delete(product *database.Product) error {
-	return r.db.Delete(product).Error
-}
-
 func (r *productRepository) FindAll() ([]database.Product, error) {
 	var products []database.Product
 	err := r.db.Where("is_sold_out = ?", false).Find(&products).Error
@@ -86,7 +81,7 @@ func (r *productRepository) BatchUpdate(products []*database.Product) error {
 
 func (r *productRepository) FindByIDs(ids []int) ([]*database.Product, error) {
 	var products []*database.Product
-	err := r.db.Where("id IN (?)", ids).Find(&products).Error
+	err := r.db.Where("id IN (?) AND is_sold_out = ?", ids, false).Find(&products).Error
 	if err != nil {
 		return nil, err
 	}
