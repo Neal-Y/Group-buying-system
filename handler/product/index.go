@@ -21,11 +21,7 @@ func NewProductController(r *gin.RouterGroup) *Product {
 	}
 
 	newRoute(h, r)
-
-	r.Use(middleware.JWTAuthMiddleware())
-	{
-		adminRoute(h, r)
-	}
+	adminRoute(h, r)
 
 	return h
 }
