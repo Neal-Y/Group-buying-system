@@ -9,6 +9,7 @@ import (
 
 type ProductRepository interface {
 	FindByID(id int) (*database.Product, error)
+	InternalFindByID(id int) (*database.Product, error)
 	Update(product *database.Product) error
 	Create(product *database.Product) error
 	FindAll() ([]database.Product, error)
@@ -43,13 +44,24 @@ func (r *productRepository) FindByID(id int) (*database.Product, error) {
 	return &product, nil
 }
 
+func (r *productRepository) InternalFindByID(id int) (*database.Product, error) {
+	var product database.Product
+	err := r.db.First(&product, id).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &product, nil
+}
+
 func (r *productRepository) Update(product *database.Product) error {
 	return r.db.Updates(product).Error
 }
 
 func (r *productRepository) FindAll() ([]database.Product, error) {
 	var products []database.Product
-	err := r.db.Where("is_sold_out = ?", false).Find(&products).Error
+	err := r.db.Find(&products).Error
 
 	if err != nil {
 		return nil, err

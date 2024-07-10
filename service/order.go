@@ -146,7 +146,7 @@ func (s *orderService) DeleteOrder(id int) error {
 	tx := s.orderRepo.BeginTransaction()
 
 	for _, detail := range order.OrderDetails {
-		product, err := s.productRepo.FindByID(detail.ProductID)
+		product, err := s.productRepo.InternalFindByID(detail.ProductID)
 		if err != nil {
 			tx.Rollback()
 			return err

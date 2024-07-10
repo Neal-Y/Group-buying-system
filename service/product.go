@@ -26,7 +26,7 @@ func NewProductService(repo repository.ProductRepository) ProductService {
 }
 
 func (s *productService) UpdateProduct(id int, productDto *product.Update) (*database.Product, error) {
-	product, err := s.productRepo.FindByID(id)
+	product, err := s.productRepo.InternalFindByID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (s *productService) CreateProduct(productDto *product.Payload) (*database.P
 }
 
 func (s *productService) DeleteProduct(id int) error {
-	product, err := s.productRepo.FindByID(id)
+	product, err := s.productRepo.InternalFindByID(id)
 	if err != nil {
 		return err
 	}
