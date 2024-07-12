@@ -14,8 +14,9 @@ type Admin struct {
 
 func NewAdminController(r *gin.RouterGroup) *Admin {
 	adminRepo := repository.NewAdminRepository()
+	verifyRepo := repository.NewVerifyRepository()
 
-	adminService := service.NewAdminService(adminRepo)
+	adminService := service.NewAdminService(adminRepo, verifyRepo)
 
 	h := &Admin{
 		adminService: adminService,
