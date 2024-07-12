@@ -45,7 +45,7 @@ func (h *Admin) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	err := h.adminService.ResetPassword(req.Token, req.NewPassword)
+	err := h.adminService.ResetPassword(req.Email, req.Code, req.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
