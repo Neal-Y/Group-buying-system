@@ -40,9 +40,9 @@ func (ec *EmailConfig) SendEmail(to, subject, body string) error {
 	return nil
 }
 
-func SendResetEmail(to, token string) error {
+func SendResetCodeEmail(to, code string) error {
 	ec := NewEmailConfig()
 	subject := "Password Reset Request"
-	body := fmt.Sprintf("Please use the following link to reset your password: \n\nhttp://localhost:8080/api/admin/reset_password?token=%s", token)
+	body := fmt.Sprintf("Your verification code is: %s", code)
 	return ec.SendEmail(to, subject, body)
 }
