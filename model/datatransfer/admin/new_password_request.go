@@ -1,6 +1,7 @@
 package admin
 
 type NewPasswordRequest struct {
-	Token       string `json:"token" binding:"required"`
+	Email       string `json:"email" binding:"required"`
+	Code        string `json:"code" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required"`
 }
