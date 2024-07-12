@@ -2,7 +2,9 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"math/rand"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/admin"
 	"shopping-cart/repository"
@@ -17,16 +19,18 @@ type AdminService interface {
 	GetAllAdmin() ([]database.Admin, error)
 	UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error)
 	RequestPasswordReset(email string) error
-	ResetPassword(token, newPassword string) error
+	ResetPassword(email, code, newPassword string) error
 }
 
 type adminService struct {
-	adminRepo repository.AdminRepository
+	adminRepo  repository.AdminRepository
+	verifyRepo repository.VerifyRepository
 }
 
-func NewAdminService(adminRepo repository.AdminRepository) AdminService {
+func NewAdminService(adminRepo repository.AdminRepository, verifyRepo repository.VerifyRepository) AdminService {
 	return &adminService{
-		adminRepo: adminRepo,
+		adminRepo:  adminRepo,
+		verifyRepo: verifyRepo,
 	}
 }
 
@@ -105,17 +109,14 @@ func (s *adminService) UpdateAdmin(id int, req *admin.UpdateRequest) (*database.
 }
 
 func (s *adminService) RequestPasswordReset(email string) error {
-	admin, err := s.adminRepo.FindByEmail(email)
-	if err != nil {
-		return errors.New("admin not found")
-	}
+	code := fmt.Sprintf("%06d", rand.Intn(1000000))
 
-	token, err := util.GenerateResetToken(admin.ID)
+	err := s.verifyRepo.SaveVerificationCode(email, code)
 	if err != nil {
 		return err
 	}
 
-	err = util.SendResetEmail(admin.Email, token)
+	err = util.SendResetCodeEmail(email, code)
 	if err != nil {
 		return err
 	}
@@ -123,15 +124,15 @@ func (s *adminService) RequestPasswordReset(email string) error {
 	return nil
 }
 
-func (s *adminService) ResetPassword(token, newPassword string) error {
-	adminID, err := util.VerifyResetToken(token)
-	if err != nil {
-		return errors.New("invalid or expired token")
+func (s *adminService) ResetPassword(email, code, newPassword string) error {
+	savedCode, err := s.verifyRepo.GetVerificationCode(email)
+	if err != nil || savedCode != code {
+		return errors.New("invalid or expired verification code or code has already been used")
 	}
 
-	admin, err := s.adminRepo.FindByID(adminID)
+	err = s.verifyRepo.MarkCodeAsUsed(email)
 	if err != nil {
-		return errors.New("admin not found")
+		return err
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
@@ -139,6 +140,10 @@ func (s *adminService) ResetPassword(token, newPassword string) error {
 		return err
 	}
 
+	admin, err := s.adminRepo.FindByEmail(email)
+	if err != nil {
+		return errors.New("admin not found")
+	}
 	admin.PasswordHash = string(hashedPassword)
 	return s.adminRepo.Update(admin)
 }
