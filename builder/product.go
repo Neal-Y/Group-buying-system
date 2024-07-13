@@ -13,6 +13,11 @@ func NewProductBuilder() *ProductBuilder {
 	return &ProductBuilder{product: &database.Product{}}
 }
 
+func (b *ProductBuilder) SetID(id int) *ProductBuilder {
+	b.product.ID = id
+	return b
+}
+
 func (b *ProductBuilder) SetName(name string) *ProductBuilder {
 	b.product.Name = name
 	return b

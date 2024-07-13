@@ -2,7 +2,9 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"math/rand"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/admin"
 	"shopping-cart/repository"
@@ -11,20 +13,24 @@ import (
 
 type AdminService interface {
 	RegisterAdmin(admin *admin.Request) error
-	Login(username, password string) (string, error)
+	Login(req *admin.Login) (string, error)
 	GetAdminByID(id int) (*database.Admin, error)
+	GetAdminByUsername(username string) (*database.Admin, error)
 	GetAllAdmin() ([]database.Admin, error)
 	UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error)
-	DeleteAdmin(id int) error
+	RequestPasswordReset(email string) error
+	ResetPassword(email, code, newPassword string) error
 }
 
 type adminService struct {
-	adminRepo repository.AdminRepository
+	adminRepo  repository.AdminRepository
+	verifyRepo repository.VerifyRepository
 }
 
-func NewAdminService(adminRepo repository.AdminRepository) AdminService {
+func NewAdminService(adminRepo repository.AdminRepository, verifyRepo repository.VerifyRepository) AdminService {
 	return &adminService{
-		adminRepo: adminRepo,
+		adminRepo:  adminRepo,
+		verifyRepo: verifyRepo,
 	}
 }
 
@@ -36,11 +42,14 @@ func (s *adminService) RegisterAdmin(req *admin.Request) error {
 	admin := &database.Admin{
 		Username:     req.Username,
 		PasswordHash: string(hashedPassword),
+		Email:        req.Email,
 	}
 	return s.adminRepo.Create(admin)
 }
 
-func (s *adminService) Login(username, password string) (string, error) {
+func (s *adminService) Login(req *admin.Login) (string, error) {
+	username, password := req.Username, req.Password
+
 	admin, err := s.adminRepo.FindByUsername(username)
 	if err != nil {
 		return "", errors.New("invalid username or password")
@@ -57,6 +66,10 @@ func (s *adminService) Login(username, password string) (string, error) {
 	}
 
 	return token, nil
+}
+
+func (s *adminService) GetAdminByUsername(username string) (*database.Admin, error) {
+	return s.adminRepo.FindByUsername(username)
 }
 
 func (s *adminService) GetAllAdmin() ([]database.Admin, error) {
@@ -83,6 +96,9 @@ func (s *adminService) UpdateAdmin(id int, req *admin.UpdateRequest) (*database.
 		}
 		admin.PasswordHash = string(hashedPassword)
 	}
+	if req.Email != "" {
+		admin.Email = req.Email
+	}
 
 	err = s.adminRepo.Update(admin)
 	if err != nil {
@@ -92,10 +108,42 @@ func (s *adminService) UpdateAdmin(id int, req *admin.UpdateRequest) (*database.
 	return admin, nil
 }
 
-func (s *adminService) DeleteAdmin(id int) error {
-	admin, err := s.adminRepo.FindByID(id)
+func (s *adminService) RequestPasswordReset(email string) error {
+	code := fmt.Sprintf("%06d", rand.Intn(1000000))
+
+	err := s.verifyRepo.SaveVerificationCode(email, code)
 	if err != nil {
 		return err
 	}
-	return s.adminRepo.Delete(admin)
+
+	err = util.SendResetCodeEmail(email, code)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *adminService) ResetPassword(email, code, newPassword string) error {
+	savedCode, err := s.verifyRepo.GetVerificationCode(email)
+	if err != nil || savedCode != code {
+		return errors.New("invalid or expired verification code or code has already been used")
+	}
+
+	err = s.verifyRepo.MarkCodeAsUsed(email)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	admin, err := s.adminRepo.FindByEmail(email)
+	if err != nil {
+		return errors.New("admin not found")
+	}
+	admin.PasswordHash = string(hashedPassword)
+	return s.adminRepo.Update(admin)
 }

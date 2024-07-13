@@ -45,8 +45,6 @@ func manageUser(h *User, r *gin.RouterGroup) {
 }
 
 func RegisterHomeRoutes(server *gin.Engine) {
-	server.LoadHTMLGlob("frontend/*")
-
 	server.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})

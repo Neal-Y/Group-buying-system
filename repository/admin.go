@@ -10,9 +10,9 @@ type AdminRepository interface {
 	Create(admin *database.Admin) error
 	FindByUsername(username string) (*database.Admin, error)
 	FindAll() ([]database.Admin, error)
+	FindByEmail(email string) (*database.Admin, error)
 	FindByID(id int) (*database.Admin, error)
 	Update(admin *database.Admin) error
-	Delete(admin *database.Admin) error
 }
 
 type adminRepository struct {
@@ -48,6 +48,15 @@ func (r *adminRepository) FindAll() ([]database.Admin, error) {
 
 }
 
+func (r *adminRepository) FindByEmail(email string) (*database.Admin, error) {
+	var admin database.Admin
+	err := r.db.Where("email = ?", email).First(&admin).Error
+	if err != nil {
+		return nil, err
+	}
+	return &admin, nil
+}
+
 func (r *adminRepository) FindByID(id int) (*database.Admin, error) {
 	var admin database.Admin
 	err := r.db.First(&admin, id).Error
@@ -59,8 +68,4 @@ func (r *adminRepository) FindByID(id int) (*database.Admin, error) {
 
 func (r *adminRepository) Update(admin *database.Admin) error {
 	return r.db.Save(admin).Error
-}
-
-func (r *adminRepository) Delete(admin *database.Admin) error {
-	return r.db.Delete(admin).Error
 }

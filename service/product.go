@@ -9,7 +9,7 @@ import (
 )
 
 type ProductService interface {
-	UpdateProduct(id int, productDto *product.Update) (*database.Product, error)
+	UpdateProduct(id int, productDto *product.Update) error
 	CreateProduct(productDto *product.Payload) (*database.Product, error)
 	DeleteProduct(id int) error
 	FindAllProducts() ([]database.Product, error)
@@ -26,13 +26,14 @@ func NewProductService(repo repository.ProductRepository) ProductService {
 	}
 }
 
-func (s *productService) UpdateProduct(id int, productDto *product.Update) (*database.Product, error) {
+func (s *productService) UpdateProduct(id int, productDto *product.Update) error {
 	product, err := s.productRepo.InternalFindByID(id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	product = builder.NewProductBuilder().
+		SetID(product.ID).
 		SetName(productDto.Name).
 		SetPicture(productDto.Picture).
 		SetPrice(productDto.Price).
@@ -41,13 +42,7 @@ func (s *productService) UpdateProduct(id int, productDto *product.Update) (*dat
 		SetExpirationTime(productDto.ExpirationTime).
 		Build()
 
-	err = s.productRepo.Update(product)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return product, nil
+	return s.productRepo.Update(product)
 }
 
 func (s *productService) CreateProduct(productDto *product.Payload) (*database.Product, error) {

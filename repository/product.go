@@ -35,7 +35,7 @@ func (r *productRepository) Create(product *database.Product) error {
 
 func (r *productRepository) FindByID(id int) (*database.Product, error) {
 	var product database.Product
-	err := r.db.Where("is_sold_out = ?", false).First(&product, id).Error
+	err := r.db.Where("id = ? AND is_sold_out = ?", id, false).First(&product).Error
 
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (r *productRepository) FindByID(id int) (*database.Product, error) {
 
 func (r *productRepository) InternalFindByID(id int) (*database.Product, error) {
 	var product database.Product
-	err := r.db.First(&product, id).Error
+	err := r.db.Where("id = ?", id).First(&product).Error
 
 	if err != nil {
 		return nil, err
