@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+
+            if (token) {
+                localStorage.setItem('jwt', token);
+                // 3秒後跳轉到首頁並將 token 作為查詢參數傳遞
+                setTimeout(function() {
+                    window.location.href = '/api/home?token=' + token;
+                }, 3000);
+            } else {
+                console.error('No token found in the URL');
+                document.body.innerHTML = '<p>Error: No token found in the URL</p>';
+            }
+        }
+    </script>
+</head>
+<body>
+<p>Redirecting in 3 seconds...</p>
+</body>
+</html>
