@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"shopping-cart/constant"
 	"shopping-cart/middleware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
@@ -22,20 +22,26 @@ func NewAuthorization(r *gin.RouterGroup) *User {
 		service: userService,
 	}
 
-	newRoute(h, r)
+	home(h, r)
+	lineRoute(h, r)
 	manageUser(h, r)
+	errorRoute(h, r)
 
 	return h
 }
 
-func newRoute(h *User, r *gin.RouterGroup) {
-	r.GET("/line", h.LineLogin)
+func home(h *User, r *gin.RouterGroup) {
+	r.GET("/home", middleware.JWTAuthMiddleware(constant.UserType), h.Home)
+}
+
+func lineRoute(h *User, r *gin.RouterGroup) {
+	r.GET("/line/login", h.LineLogin)
 	r.GET("/line/callback", h.LineCallback)
 }
 
 func manageUser(h *User, r *gin.RouterGroup) {
 	adminGroup := r.Group("/admin/users")
-	adminGroup.Use(middleware.JWTAuthMiddleware())
+	adminGroup.Use(middleware.JWTAuthMiddleware(constant.AdminType))
 	adminGroup.POST("", h.CreateUser)
 	adminGroup.GET("/:id", h.GetUser)
 	adminGroup.GET("", h.GetUsers)
@@ -44,15 +50,6 @@ func manageUser(h *User, r *gin.RouterGroup) {
 	adminGroup.DELETE("/:id", h.DeleteUser)
 }
 
-func RegisterHomeRoutes(server *gin.Engine) {
-	server.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
-	})
-
-	server.GET("/error", func(c *gin.Context) {
-		message := c.Query("message")
-		c.HTML(http.StatusOK, "error.html", gin.H{
-			"errorMessage": message,
-		})
-	})
+func errorRoute(h *User, r *gin.RouterGroup) {
+	r.GET("/error", h.Error)
 }
