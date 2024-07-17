@@ -19,7 +19,8 @@ func GinRouter() (server *gin.Engine) {
 	server.LoadHTMLGlob("frontend/*")
 
 	admin.RegisterHomeRoutes(server)
-	user.RegisterHomeRoutes(server)
+
+	server.StaticFile("/api/buffer", "./owner/buffer.html")
 
 	api := server.Group("/api")
 

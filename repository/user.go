@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"fmt"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
 	"time"
@@ -81,8 +81,27 @@ func (r *userRepository) BeginTransaction() *gorm.DB {
 }
 
 func (r *userRepository) Upsert(user *database.User) error {
-	return r.db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "line_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"display_name", "email", "line_token", "phone"}),
-	}).Create(user).Error
+	existingUser, err := r.FindByLineID(user.LineID)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return err
+	}
+
+	if existingUser != nil {
+		err = r.db.Model(existingUser).Updates(database.User{
+			DisplayName: user.DisplayName,
+			Email:       user.Email,
+			LineToken:   user.LineToken,
+			Phone:       user.Phone,
+		}).Error
+		if err != nil {
+			fmt.Printf("Error updating user: %v\n", err)
+		}
+		return err
+	} else {
+		err = r.db.Create(user).Error
+		if err != nil {
+			fmt.Printf("Error creating user: %v\n", err)
+		}
+		return err
+	}
 }

@@ -9,21 +9,21 @@ import (
 
 var jwtSecret = []byte(config.AppConfig.Secret)
 
-func exportJWTMapClaims(adminID int) jwt.MapClaims {
+func exportJWTMapClaims(typeToken string) jwt.MapClaims {
 	return jwt.MapClaims{
-		"admin_id": adminID,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"type": typeToken,
+		"exp":  time.Now().Add(time.Hour * 24).Unix(),
 	}
 }
 
-func GenerateJWT(adminID int) (string, error) {
-	claims := exportJWTMapClaims(adminID)
+func GenerateJWT(typeToken string) (string, error) {
+	claims := exportJWTMapClaims(typeToken)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
 }
 
-func ParseJWT(tokenString string) (jwt.Claims, error) {
+func ParseJWT(tokenString string, expectedType string) (jwt.Claims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -35,9 +35,15 @@ func ParseJWT(tokenString string) (jwt.Claims, error) {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims, nil
-	} else {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok && !token.Valid {
 		return nil, fmt.Errorf("invalid token")
 	}
+
+	tokenType, ok := claims["type"].(string)
+	if !ok || tokenType != expectedType {
+		return nil, fmt.Errorf("invalid token type")
+	}
+
+	return claims, nil
 }

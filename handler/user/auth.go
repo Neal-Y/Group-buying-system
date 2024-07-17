@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"shopping-cart/config"
 	"shopping-cart/constant"
+	"shopping-cart/util"
 )
 
 func (h *User) LineLogin(c *gin.Context) {
@@ -35,7 +36,14 @@ func (h *User) LineCallback(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, config.AppConfig.NgrokURL)
+	token, err := util.GenerateJWT(constant.UserType)
+	if err != nil {
+		handleLineServerError(c, "failed to generate JWT")
+		return
+	}
+
+	redirectURL := fmt.Sprintf("%s/api/buffer?token=%s", config.AppConfig.NgrokURL, token)
+	c.Redirect(http.StatusFound, redirectURL)
 }
 
 func handleLineServerError(c *gin.Context, errorMessage string) {

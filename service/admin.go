@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
+	"shopping-cart/constant"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/admin"
 	"shopping-cart/repository"
@@ -60,7 +61,7 @@ func (s *adminService) Login(req *admin.Login) (string, error) {
 		return "", errors.New("invalid username or password")
 	}
 
-	token, err := util.GenerateJWT(admin.ID)
+	token, err := util.GenerateJWT(constant.AdminType)
 	if err != nil {
 		return "", err
 	}

@@ -5,46 +5,46 @@ import (
 	"github.com/golang-jwt/jwt"
 	"net/http"
 	"shopping-cart/util"
+	"strings"
 )
 
-func JWTAuthMiddleware() gin.HandlerFunc {
+func redirectToLogin(c *gin.Context, expectType string) {
+	if expectType == "admin" {
+		c.Redirect(http.StatusFound, "/admin/login")
+	} else {
+		c.Redirect(http.StatusFound, "/api/line/login")
+	}
+	c.Abort()
+}
+
+func JWTAuthMiddleware(expectType string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
+		authHeader := c.GetHeader("Authorization")
+		//authHeader := c.Query("token") for user 因為目前是從callback url中擷取token
 
-		if tokenString == "" {
-			var req struct {
-				Token string `json:"token"`
-			}
-			if err := c.ShouldBindJSON(&req); err == nil {
-				tokenString = req.Token
-			}
-		}
-
-		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "authorization token required"})
-			c.Abort()
+		if authHeader == "" {
+			redirectToLogin(c, expectType)
 			return
 		}
 
-		claims, err := util.ParseJWT(tokenString)
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+		claims, err := util.ParseJWT(tokenString, expectType)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			c.Abort()
+			redirectToLogin(c, expectType)
 			return
 		}
 
 		mapClaims, ok := claims.(jwt.MapClaims)
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
-			c.Abort()
+			redirectToLogin(c, expectType)
 			return
 		}
 
-		if adminID, ok := mapClaims["admin_id"].(float64); ok {
-			c.Set("admin_id", int(adminID))
+		if userType, ok := mapClaims["type"].(string); ok {
+			c.Set("user_type", userType)
 		} else {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
-			c.Abort()
+			redirectToLogin(c, expectType)
 			return
 		}
 

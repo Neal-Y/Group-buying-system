@@ -3,6 +3,7 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"shopping-cart/constant"
 	"shopping-cart/middleware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
@@ -36,7 +37,7 @@ func loginRoute(h *Admin, r *gin.RouterGroup) {
 
 func adminRoute(h *Admin, r *gin.RouterGroup) {
 	adminRoute := r.Group("/admin")
-	adminRoute.Use(middleware.JWTAuthMiddleware())
+	adminRoute.Use(middleware.JWTAuthMiddleware(constant.AdminType))
 	adminRoute.GET("/:id", h.GetAdmin)
 	adminRoute.GET("", h.ListAdmins)
 	adminRoute.PATCH("/:id", h.UpdateAdmin)
