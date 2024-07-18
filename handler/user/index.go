@@ -26,12 +26,17 @@ func NewAuthorization(r *gin.RouterGroup) *User {
 	lineRoute(h, r)
 	manageUser(h, r)
 	errorRoute(h, r)
+	buffer(h, r)
 
 	return h
 }
 
 func home(h *User, r *gin.RouterGroup) {
 	r.GET("/home", middleware.JWTAuthMiddleware(constant.UserType), h.Home)
+}
+
+func buffer(h *User, r *gin.RouterGroup) {
+	r.GET("/buffer", h.Buffer)
 }
 
 func lineRoute(h *User, r *gin.RouterGroup) {

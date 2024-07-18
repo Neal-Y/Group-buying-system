@@ -16,11 +16,10 @@ func InitGinServer() (server *gin.Engine, err error) {
 
 func GinRouter() (server *gin.Engine) {
 	server = gin.New()
+	server.Use(gin.Logger())
 	server.LoadHTMLGlob("frontend/*")
 
 	admin.RegisterHomeRoutes(server)
-
-	server.StaticFile("/api/buffer", "./owner/buffer.html")
 
 	api := server.Group("/api")
 
