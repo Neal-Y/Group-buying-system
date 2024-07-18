@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鮮醬子用戶登入</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .container h2 {
+            margin-bottom: 20px;
+        }
+        .container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .container button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .container button:hover {
+            background-color: #45a049;
+        }
+        .container a {
+            color: #4CAF50;
+            text-decoration: none;
+            display: block;
+            margin: 10px 0;
+        }
+        .container .line-login {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .container .line-login img {
+            width: 30px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>用戶登入</h2>
+    <form id="loginForm">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">登入</button>
+    </form>
+    <button onclick="window.location.href='/api/user/register'">註冊</button>
+    <a href="/api/user/get_user_email">忘記密碼？</a>
+    <a href="/api/line/login">使用LINE登入？</a>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        fetch('/api/user/email/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/api/home';
+                } else {
+                    alert('Login failed');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    });
+</script>
+</body>
+</html>
+
+<!--請幫我生成一個用戶的登入畫面，用於當我的middleware回傳401時，讓他們可以跳轉到的畫面，叫做user_login.html，然後裡面就是簡單的帳號密碼登入還有註冊按鈕以及忘記密碼跟可以選擇line登入的icon，當他按下”登入“是打到後台的/api/user/email/login，當他按下註冊是打到後台的/api/user/regiester，當他按下忘記密碼是打到後台的/api/user/get_user_email，當他按下line 的icon就打到後台的/api/line/login-->
