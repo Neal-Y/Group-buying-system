@@ -13,7 +13,7 @@ func (h *User) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetUserByID(id)
+	user, err := h.userService.GetUserByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
@@ -23,7 +23,7 @@ func (h *User) GetUser(c *gin.Context) {
 }
 
 func (h *User) GetUsers(c *gin.Context) {
-	users, err := h.service.GetUsers()
+	users, err := h.userService.GetUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -33,7 +33,7 @@ func (h *User) GetUsers(c *gin.Context) {
 }
 
 func (h *User) ListBlockedUsers(c *gin.Context) {
-	users, err := h.service.ListBlockedUsers()
+	users, err := h.userService.ListBlockedUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

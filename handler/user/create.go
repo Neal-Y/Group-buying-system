@@ -13,7 +13,7 @@ func (h *User) CreateUser(c *gin.Context) {
 		return
 	}
 
-	err := h.service.CreateUser(&req)
+	err := h.userService.CreateUser(&req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
