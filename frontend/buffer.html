@@ -8,12 +8,13 @@
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
+            const displayName = urlParams.get('display_name');
 
             if (token) {
                 localStorage.setItem('jwt', token);
-                // 3秒後跳轉到首頁並將 token 作為查詢參數傳遞
+                localStorage.setItem('display_name', displayName);
                 setTimeout(function() {
-                    window.location.href = '/api/home?token=' + token;
+                    window.location.href = '/api/home?token=' + token + '&display_name=' + encodeURIComponent(displayName);
                 }, 3000);
             } else {
                 console.error('No token found in the URL');

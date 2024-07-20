@@ -15,17 +15,21 @@ type OrderService interface {
 	UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error)
 	DeleteOrder(id int) error
 	ListAllOrders() ([]database.Order, error)
+	ListHistoryOrdersByDisplayNameAndProductID(displayName string, productID int) ([]database.Order, error)
+	GetOrderByUserDisplayName(displayName string) ([]database.Order, error)
 }
 
 type orderService struct {
 	orderRepo   repository.OrderRepository
 	productRepo repository.ProductRepository
+	userRepo    repository.UserRepository
 }
 
-func NewOrderService(orderRepo repository.OrderRepository, productRepo repository.ProductRepository) OrderService {
+func NewOrderService(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, userRepo repository.UserRepository) OrderService {
 	return &orderService{
 		orderRepo:   orderRepo,
 		productRepo: productRepo,
+		userRepo:    userRepo,
 	}
 }
 
@@ -171,4 +175,22 @@ func (s *orderService) DeleteOrder(id int) error {
 
 func (s *orderService) ListAllOrders() ([]database.Order, error) {
 	return s.orderRepo.FindAll()
+}
+
+func (s *orderService) ListHistoryOrdersByDisplayNameAndProductID(displayName string, productID int) ([]database.Order, error) {
+	user, err := s.userRepo.FindByDisplayName(displayName)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.orderRepo.FindByUserIDAndProductID(user.ID, productID)
+}
+
+func (s *orderService) GetOrderByUserDisplayName(displayName string) ([]database.Order, error) {
+	user, err := s.userRepo.FindByDisplayName(displayName)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.orderRepo.FindByUserID(user.ID)
 }

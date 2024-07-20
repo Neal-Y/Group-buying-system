@@ -14,6 +14,8 @@ type OrderRepository interface {
 	FindAll() ([]database.Order, error)
 	BeginTransaction() *gorm.DB
 	FindPendingOrdersByUserIDTx(tx *gorm.DB, userID int) ([]database.Order, error)
+	FindByUserIDAndProductID(userID, productID int) ([]database.Order, error)
+	FindByUserID(userID int) ([]database.Order, error)
 }
 
 type orderRepository struct {
@@ -64,6 +66,28 @@ func (r *orderRepository) BeginTransaction() *gorm.DB {
 func (r *orderRepository) FindPendingOrdersByUserIDTx(tx *gorm.DB, userID int) ([]database.Order, error) {
 	var orders []database.Order
 	err := tx.Where("user_id = ? AND status = ?", userID, "pending").Find(&orders).Error
+	if err != nil {
+		return nil, err
+	}
+	return orders, nil
+}
+
+func (r *orderRepository) FindByUserIDAndProductID(userID int, productID int) ([]database.Order, error) {
+	var orders []database.Order
+	err := r.db.Preload("OrderDetails", "product_id = ?", productID).
+		Where("user_id = ? AND status != ?", userID, "cancelled").
+		Joins("JOIN order_details ON orders.id = order_details.order_id").
+		Where("order_details.product_id = ?", productID).
+		Find(&orders).Error
+	if err != nil {
+		return nil, err
+	}
+	return orders, nil
+}
+
+func (r *orderRepository) FindByUserID(userID int) ([]database.Order, error) {
+	var orders []database.Order
+	err := r.db.Preload("OrderDetails.Product").Where("user_id = ? AND status != ?", userID, "cancelled").Find(&orders).Error
 	if err != nil {
 		return nil, err
 	}

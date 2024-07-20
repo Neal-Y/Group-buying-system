@@ -15,8 +15,9 @@ type Order struct {
 func NewOrderHandler(r *gin.RouterGroup) *Order {
 	orderRepo := repository.NewOrderRepository()
 	productRepo := repository.NewProductRepository()
+	userRepo := repository.NewUserRepository()
 
-	orderService := service.NewOrderService(orderRepo, productRepo)
+	orderService := service.NewOrderService(orderRepo, productRepo, userRepo)
 
 	h := &Order{
 		orderService: orderService,
@@ -32,4 +33,6 @@ func newRoute(h *Order, r *gin.RouterGroup) {
 	r.PATCH("admin/orders/:id", middleware.JWTAuthMiddleware(constant.AdminType), h.UpdateOrder)
 	r.DELETE("/orders/:id", h.DeleteOrder)
 	r.GET("/orders", h.ListOrders)
+	r.GET("/client/history_orders", h.ListHistoryOrdersByUser)
+	r.GET("/pick_up_by_display_name", h.GetOrderByUserDisplayName)
 }

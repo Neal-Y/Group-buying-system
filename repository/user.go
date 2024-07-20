@@ -17,6 +17,7 @@ type UserRepository interface {
 	SoftDeleteTx(tx *gorm.DB, id int) error
 	BeginTransaction() *gorm.DB
 	Upsert(user *database.User) error
+	FindByDisplayName(displayName string) (*database.User, error)
 }
 
 type userRepository struct {
@@ -104,4 +105,13 @@ func (r *userRepository) Upsert(user *database.User) error {
 		}
 		return err
 	}
+}
+
+func (r *userRepository) FindByDisplayName(displayName string) (*database.User, error) {
+	var user database.User
+	err := r.db.Where("display_name = ?", displayName).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
