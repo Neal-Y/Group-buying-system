@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"shopping-cart/builder"
 	"shopping-cart/config"
 	"shopping-cart/constant"
@@ -15,6 +16,8 @@ import (
 type UserService interface {
 	SaveOrUpdateUser(user *database.User) error
 	ExchangeTokenAndGetProfile(code string) (*database.User, error)
+	Login(req *user.Login) (string, error)
+	RegisterUser(req *user.Register) error
 	CreateUser(req *user.Request) error
 	GetUserByID(id int) (*database.User, error)
 	GetUsers() ([]database.User, error)
@@ -24,16 +27,16 @@ type UserService interface {
 }
 
 type userService struct {
-	user  repository.UserRepository
-	order repository.OrderRepository
+	userRepo  repository.UserRepository
+	orderRepo repository.OrderRepository
 }
 
 func NewUserService(user repository.UserRepository, order repository.OrderRepository) UserService {
-	return &userService{user: user, order: order}
+	return &userService{userRepo: user, orderRepo: order}
 }
 
 func (s *userService) SaveOrUpdateUser(user *database.User) error {
-	return s.user.Upsert(user)
+	return s.userRepo.Upsert(user)
 }
 
 func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, error) {
@@ -74,6 +77,49 @@ func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, e
 	return user, nil
 }
 
+func (s *userService) Login(req *user.Login) (string, error) {
+	username, password := req.DisplayName, req.Password
+
+	user, err := s.userRepo.FindByDisplayName(username)
+	if err != nil {
+		return "", errors.New("invalid username or password")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	if err != nil {
+		return "", errors.New("invalid username or password")
+	}
+
+	token, err := util.GenerateJWT(constant.AdminType)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (s *userService) RegisterUser(req *user.Register) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	existed, _ := s.userRepo.FindByDisplayName(req.DisplayName)
+	if existed != nil {
+		return errors.New("username already exists")
+	}
+
+	user := builder.NewUserBuilder().
+		WithLineID("CreatedByUserEmail").
+		WithDisplayName(req.DisplayName).
+		WithPasswordHash(string(hashedPassword)).
+		WithEmail(req.Email).
+		WithPhone(req.Phone).
+		Build()
+
+	return s.userRepo.Create(user)
+}
+
 func (s *userService) CreateUser(req *user.Request) error {
 	user := builder.NewUserBuilder().
 		WithLineID("CreatedByAdmin").
@@ -82,19 +128,19 @@ func (s *userService) CreateUser(req *user.Request) error {
 		WithIsMember(req.IsMember).
 		Build()
 
-	return s.user.Create(user)
+	return s.userRepo.Create(user)
 }
 
 func (s *userService) GetUserByID(id int) (*database.User, error) {
-	return s.user.FindByID(id)
+	return s.userRepo.FindByID(id)
 }
 
 func (s *userService) GetUsers() ([]database.User, error) {
-	return s.user.FindAll()
+	return s.userRepo.FindAll()
 }
 
 func (s *userService) UpdateUser(id int, req *user.Update) error {
-	user, err := s.user.FindByID(id)
+	user, err := s.userRepo.FindByID(id)
 	if err != nil {
 		return err
 	}
@@ -110,23 +156,23 @@ func (s *userService) UpdateUser(id int, req *user.Update) error {
 
 	updatedUser.ID = user.ID
 
-	return s.user.Update(updatedUser)
+	return s.userRepo.Update(updatedUser)
 }
 
 func (s *userService) DeleteUser(id int) error {
-	tx := s.user.BeginTransaction()
+	tx := s.userRepo.BeginTransaction()
 
-	pendingOrders, err := s.order.FindPendingOrdersByUserIDTx(tx, id)
+	pendingOrders, err := s.orderRepo.FindPendingOrdersByUserIDTx(tx, id)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 	if len(pendingOrders) > 0 {
 		tx.Rollback()
-		return errors.New("user has pending orders, cannot delete")
+		return errors.New("userRepo has pending orders, cannot delete")
 	}
 
-	err = s.user.SoftDeleteTx(tx, id)
+	err = s.userRepo.SoftDeleteTx(tx, id)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -137,5 +183,5 @@ func (s *userService) DeleteUser(id int) error {
 }
 
 func (s *userService) ListBlockedUsers() ([]database.User, error) {
-	return s.user.FindAll()
+	return s.userRepo.FindAll()
 }
