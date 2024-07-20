@@ -9,7 +9,7 @@ import (
 )
 
 type User struct {
-	service service.UserService
+	userService service.UserService
 }
 
 func NewAuthorization(r *gin.RouterGroup) *User {
@@ -19,7 +19,7 @@ func NewAuthorization(r *gin.RouterGroup) *User {
 	userService := service.NewUserService(userRepo, orderRepo)
 
 	h := &User{
-		service: userService,
+		userService: userService,
 	}
 
 	home(h, r)
@@ -27,6 +27,7 @@ func NewAuthorization(r *gin.RouterGroup) *User {
 	manageUser(h, r)
 	errorRoute(h, r)
 	buffer(h, r)
+	emailRoute(h, r)
 
 	return h
 }
@@ -42,6 +43,11 @@ func buffer(h *User, r *gin.RouterGroup) {
 func lineRoute(h *User, r *gin.RouterGroup) {
 	r.GET("/line/login", h.LineLogin)
 	r.GET("/line/callback", h.LineCallback)
+}
+
+func emailRoute(h *User, r *gin.RouterGroup) {
+	r.POST("/email/login", h.EmailLogin)
+	r.POST("/email/register", h.EmailRegister)
 }
 
 func manageUser(h *User, r *gin.RouterGroup) {
