@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Admin) GetAdminEmail(c *gin.Context) {
-	var req forgot_pwd.GetAdminEmailByUsernameRequest
+	var req forgot_pwd.GetEmailByUsernameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
