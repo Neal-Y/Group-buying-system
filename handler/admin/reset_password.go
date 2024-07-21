@@ -3,11 +3,11 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"shopping-cart/model/datatransfer/admin"
+	"shopping-cart/model/datatransfer/util/forgot_pwd"
 )
 
 func (h *Admin) GetAdminEmail(c *gin.Context) {
-	var req admin.GetAdminEmailByUsernameRequest
+	var req forgot_pwd.GetAdminEmailByUsernameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -23,7 +23,7 @@ func (h *Admin) GetAdminEmail(c *gin.Context) {
 }
 
 func (h *Admin) RequestPasswordReset(c *gin.Context) {
-	var req admin.ResetPasswordRequest
+	var req forgot_pwd.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -39,7 +39,7 @@ func (h *Admin) RequestPasswordReset(c *gin.Context) {
 }
 
 func (h *Admin) ResetPassword(c *gin.Context) {
-	var req admin.NewPasswordRequest
+	var req forgot_pwd.NewPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
