@@ -18,6 +18,7 @@ type UserRepository interface {
 	BeginTransaction() *gorm.DB
 	Upsert(user *database.User) error
 	FindByDisplayName(displayName string) (*database.User, error)
+	FindByEmailAndDisplayName(email, displayName string) (*database.User, error)
 }
 
 type userRepository struct {
@@ -110,6 +111,15 @@ func (r *userRepository) Upsert(user *database.User) error {
 func (r *userRepository) FindByDisplayName(displayName string) (*database.User, error) {
 	var user database.User
 	err := r.db.Where("display_name = ?", displayName).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *userRepository) FindByEmailAndDisplayName(email, displayName string) (*database.User, error) {
+	var user database.User
+	err := r.db.Where("email = ? AND display_name = ? AND line_id = ?", email, displayName, "CreatedByUserEmail").First(&user).Error
 	if err != nil {
 		return nil, err
 	}
