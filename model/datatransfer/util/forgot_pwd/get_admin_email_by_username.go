@@ -1,5 +1,5 @@
 package forgot_pwd
 
-type GetAdminEmailByUsernameRequest struct {
+type GetEmailByUsernameRequest struct {
 	Username string `json:"username" binding:"required"`
 }
