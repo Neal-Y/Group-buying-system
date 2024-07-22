@@ -25,13 +25,13 @@ func (h *User) LineCallback(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.ExchangeTokenAndGetProfile(code)
+	user, err := h.userService.ExchangeTokenAndGetProfile(code)
 	if err != nil {
 		handleLineServerError(c, err.Error())
 		return
 	}
 
-	err = h.service.SaveOrUpdateUser(user)
+	err = h.userService.SaveOrUpdateUser(user)
 	if err != nil {
 		handleLineServerError(c, "failed to save or update user")
 		return

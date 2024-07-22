@@ -20,7 +20,7 @@ func (h *User) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	err = h.service.UpdateUser(id, &req)
+	err = h.userService.UpdateUser(id, &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

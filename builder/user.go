@@ -42,6 +42,11 @@ func (b *UserBuilder) WithLineToken(lineToken string) *UserBuilder {
 	return b
 }
 
+func (b *UserBuilder) WithPasswordHash(passwordHash string) *UserBuilder {
+	b.user.PasswordHash = passwordHash
+	return b
+}
+
 func (b *UserBuilder) Build() *database.User {
 	return b.user
 }
