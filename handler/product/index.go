@@ -35,7 +35,7 @@ func adminRoute(h *Product, r *gin.RouterGroup) {
 	adminRoute := r.Group("/admin/products")
 	adminRoute.Use(middleware.JWTAuthMiddleware(constant.AdminType))
 	adminRoute.POST("", h.CreateProduct)
-	adminRoute.GET("", h.GetAllProducts)
 	adminRoute.PATCH("/:id", h.UpdateProduct)
 	adminRoute.DELETE("/:id", h.DeleteProduct)
+	adminRoute.GET("/search", h.SearchProducts)
 }
