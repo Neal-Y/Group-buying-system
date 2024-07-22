@@ -6,6 +6,7 @@ import (
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/order"
 	"shopping-cart/repository"
+	"shopping-cart/util"
 	"time"
 )
 
@@ -14,7 +15,7 @@ type OrderService interface {
 	UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error)
 	DeleteOrder(id int) error
 	ListHistoryOrdersByDisplayNameAndProductID(displayName string, productID int) ([]database.Order, error)
-	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error)
+	SearchOrders(params util.SearchContainer) ([]database.Order, int64, error)
 }
 
 type orderService struct {
@@ -176,6 +177,6 @@ func (s *orderService) ListHistoryOrdersByDisplayNameAndProductID(displayName st
 	return s.orderRepo.FindByUserIDAndProductID(user.ID, productID)
 }
 
-func (s *orderService) SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error) {
-	return s.orderRepo.SearchOrders(keyword, startDate, endDate, offset, limit)
+func (s *orderService) SearchOrders(params util.SearchContainer) ([]database.Order, int64, error) {
+	return s.orderRepo.SearchOrders(params.Keyword, params.StartDate, params.EndDate, params.Offset, params.Limit)
 }
