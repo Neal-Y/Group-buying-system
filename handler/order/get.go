@@ -4,34 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shopping-cart/model/datatransfer/order"
-	"shopping-cart/util"
+	"strconv"
+	"time"
 )
-
-func (h *Order) GetOrder(c *gin.Context) {
-	id, err := util.GetIDFromPath(c, "id")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order ID"})
-		return
-	}
-
-	order, err := h.orderService.GetOrderByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"order": order})
-}
-
-func (h *Order) ListOrders(c *gin.Context) {
-	orders, err := h.orderService.ListAllOrders()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"orders": orders})
-}
 
 func (h *Order) ListHistoryOrdersByUser(c *gin.Context) {
 	var orderRequest order.ListHistory
@@ -50,19 +25,35 @@ func (h *Order) ListHistoryOrdersByUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"orders": orders})
 }
 
-func (h *Order) GetOrderByUserDisplayName(c *gin.Context) {
-	var orderRequest order.GetOrderByUsername
-	err := c.ShouldBindJSON(&orderRequest)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+func (h *Order) SearchOrders(c *gin.Context) {
+	keyword := c.Query("keyword")
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	var startDate, endDate time.Time
+	var err error
+
+	if startDateStr != "" {
+		startDate, err = time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date"})
+			return
+		}
+	}
+	if endDateStr != "" {
+		endDate, err = time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date"})
+			return
+		}
 	}
 
-	orders, err := h.orderService.GetOrderByUserDisplayName(orderRequest.DisplayName)
+	orders, total, err := h.orderService.SearchOrders(keyword, startDate, endDate, offset, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "display_name not found"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"orders": orders})
+	c.JSON(http.StatusOK, gin.H{"orders": orders, "total": total})
 }
