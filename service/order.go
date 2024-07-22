@@ -11,12 +11,10 @@ import (
 
 type OrderService interface {
 	CreateOrder(orderRequest *order.Request) (*database.Order, error)
-	GetOrderByID(id int) (*database.Order, error)
 	UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error)
 	DeleteOrder(id int) error
-	ListAllOrders() ([]database.Order, error)
 	ListHistoryOrdersByDisplayNameAndProductID(displayName string, productID int) ([]database.Order, error)
-	GetOrderByUserDisplayName(displayName string) ([]database.Order, error)
+	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error)
 }
 
 type orderService struct {
@@ -115,10 +113,6 @@ func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order
 	return order, nil
 }
 
-func (s *orderService) GetOrderByID(id int) (*database.Order, error) {
-	return s.orderRepo.FindByID(id)
-}
-
 func (s *orderService) UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error) {
 	order, err := s.orderRepo.FindByID(id)
 	if err != nil {
@@ -173,10 +167,6 @@ func (s *orderService) DeleteOrder(id int) error {
 	return nil
 }
 
-func (s *orderService) ListAllOrders() ([]database.Order, error) {
-	return s.orderRepo.FindAll()
-}
-
 func (s *orderService) ListHistoryOrdersByDisplayNameAndProductID(displayName string, productID int) ([]database.Order, error) {
 	user, err := s.userRepo.FindByDisplayName(displayName)
 	if err != nil {
@@ -186,11 +176,6 @@ func (s *orderService) ListHistoryOrdersByDisplayNameAndProductID(displayName st
 	return s.orderRepo.FindByUserIDAndProductID(user.ID, productID)
 }
 
-func (s *orderService) GetOrderByUserDisplayName(displayName string) ([]database.Order, error) {
-	user, err := s.userRepo.FindByDisplayName(displayName)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.orderRepo.FindByUserID(user.ID)
+func (s *orderService) SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error) {
+	return s.orderRepo.SearchOrders(keyword, startDate, endDate, offset, limit)
 }
