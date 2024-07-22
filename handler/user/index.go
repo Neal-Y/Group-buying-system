@@ -15,8 +15,9 @@ type User struct {
 func NewAuthorization(r *gin.RouterGroup) *User {
 	userRepo := repository.NewUserRepository()
 	orderRepo := repository.NewOrderRepository()
+	verifyRepo := repository.NewVerifyRepository()
 
-	userService := service.NewUserService(userRepo, orderRepo)
+	userService := service.NewUserService(userRepo, orderRepo, verifyRepo)
 
 	h := &User{
 		userService: userService,
@@ -28,6 +29,7 @@ func NewAuthorization(r *gin.RouterGroup) *User {
 	errorRoute(h, r)
 	buffer(h, r)
 	emailRoute(h, r)
+	resetPasswordRoute(h, r)
 
 	return h
 }
@@ -38,6 +40,13 @@ func home(h *User, r *gin.RouterGroup) {
 
 func buffer(h *User, r *gin.RouterGroup) {
 	r.GET("/buffer", h.Buffer)
+}
+
+func resetPasswordRoute(h *User, r *gin.RouterGroup) {
+	user := r.Group("/user")
+	user.POST("/get_email", h.GetUserEmail)
+	user.POST("/request_password_reset", h.RequestPasswordReset)
+	user.POST("/reset_password", h.ResetPassword)
 }
 
 func lineRoute(h *User, r *gin.RouterGroup) {

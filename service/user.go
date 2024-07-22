@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"math/rand"
 	"shopping-cart/builder"
 	"shopping-cart/config"
 	"shopping-cart/constant"
@@ -24,15 +25,19 @@ type UserService interface {
 	UpdateUser(id int, req *user.Update) error
 	DeleteUser(id int) error
 	ListBlockedUsers() ([]database.User, error)
+	GetUserByDisplayName(displayName string) (*database.User, error)
+	RequestPasswordReset(email string) error
+	ResetPassword(email, code, newPassword, displayName string) error
 }
 
 type userService struct {
-	userRepo  repository.UserRepository
-	orderRepo repository.OrderRepository
+	userRepo   repository.UserRepository
+	orderRepo  repository.OrderRepository
+	verifyRepo repository.VerifyRepository
 }
 
-func NewUserService(user repository.UserRepository, order repository.OrderRepository) UserService {
-	return &userService{userRepo: user, orderRepo: order}
+func NewUserService(user repository.UserRepository, order repository.OrderRepository, verify repository.VerifyRepository) UserService {
+	return &userService{userRepo: user, orderRepo: order, verifyRepo: verify}
 }
 
 func (s *userService) SaveOrUpdateUser(user *database.User) error {
@@ -184,4 +189,48 @@ func (s *userService) DeleteUser(id int) error {
 
 func (s *userService) ListBlockedUsers() ([]database.User, error) {
 	return s.userRepo.FindAll()
+}
+
+func (s *userService) GetUserByDisplayName(displayName string) (*database.User, error) {
+	return s.userRepo.FindByDisplayName(displayName)
+}
+
+func (s *userService) RequestPasswordReset(email string) error {
+	code := fmt.Sprintf("%06d", rand.Intn(1000000))
+
+	err := s.verifyRepo.SaveVerificationCode(email, code)
+	if err != nil {
+		return err
+	}
+
+	err = util.SendResetCodeEmail(email, code)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *userService) ResetPassword(email, code, newPassword, displayName string) error {
+	savedCode, err := s.verifyRepo.GetVerificationCode(email)
+	if err != nil || savedCode != code {
+		return errors.New("invalid or expired verification code or code has already been used")
+	}
+
+	err = s.verifyRepo.MarkCodeAsUsed(email)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.userRepo.FindByEmailAndDisplayName(email, displayName)
+	if err != nil {
+		return errors.New("user not found")
+	}
+	user.PasswordHash = string(hashedPassword)
+	return s.userRepo.Update(user)
 }
