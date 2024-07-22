@@ -6,14 +6,15 @@ import (
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/product"
 	"shopping-cart/repository"
+	"time"
 )
 
 type ProductService interface {
 	UpdateProduct(id int, productDto *product.Update) error
 	CreateProduct(productDto *product.Payload) (*database.Product, error)
 	DeleteProduct(id int) error
-	FindAllProducts() ([]database.Product, error)
 	FindByID(id int) (*database.Product, error)
+	SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error)
 }
 
 type productService struct {
@@ -79,10 +80,10 @@ func (s *productService) DeleteProduct(id int) error {
 	return s.productRepo.SoftDelete(product)
 }
 
-func (s *productService) FindAllProducts() ([]database.Product, error) {
-	return s.productRepo.FindAll()
-}
-
 func (s *productService) FindByID(id int) (*database.Product, error) {
 	return s.productRepo.FindByID(id)
+}
+
+func (s *productService) SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error) {
+	return s.productRepo.SearchProducts(keyword, startDate, endDate, offset, limit)
 }
