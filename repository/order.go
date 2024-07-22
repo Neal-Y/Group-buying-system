@@ -4,6 +4,7 @@ import (
 	"gorm.io/gorm"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
+	"time"
 )
 
 type OrderRepository interface {
@@ -11,11 +12,10 @@ type OrderRepository interface {
 	FindByID(id int) (*database.Order, error)
 	Update(order *database.Order) error
 	SoftDelete(order *database.Order) error
-	FindAll() ([]database.Order, error)
 	BeginTransaction() *gorm.DB
 	FindPendingOrdersByUserIDTx(tx *gorm.DB, userID int) ([]database.Order, error)
 	FindByUserIDAndProductID(userID, productID int) ([]database.Order, error)
-	FindByUserID(userID int) ([]database.Order, error)
+	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error)
 }
 
 type orderRepository struct {
@@ -50,15 +50,6 @@ func (r *orderRepository) SoftDelete(order *database.Order) error {
 	return r.db.Save(order).Error
 }
 
-func (r *orderRepository) FindAll() ([]database.Order, error) {
-	var orders []database.Order
-	err := r.db.Preload("User").Preload("OrderDetails.Product").Where("status != ?", "cancelled").Find(&orders).Error
-	if err != nil {
-		return nil, err
-	}
-	return orders, nil
-}
-
 func (r *orderRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
 }
@@ -85,11 +76,29 @@ func (r *orderRepository) FindByUserIDAndProductID(userID int, productID int) ([
 	return orders, nil
 }
 
-func (r *orderRepository) FindByUserID(userID int) ([]database.Order, error) {
+func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error) {
 	var orders []database.Order
-	err := r.db.Preload("OrderDetails.Product").Where("user_id = ? AND status != ?", userID, "cancelled").Find(&orders).Error
-	if err != nil {
-		return nil, err
+	var count int64
+
+	query := r.db.Model(&database.Order{}).Joins("JOIN users ON users.id = orders.user_id")
+
+	if keyword != "" {
+		query = query.Where("orders.note LIKE ? OR orders.status LIKE ? OR users.display_name LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 	}
-	return orders, nil
+
+	if !startDate.IsZero() && !endDate.IsZero() {
+		query = query.Where("orders.created_at BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	err := query.Count(&count).
+		Offset(offset).
+		Limit(limit).
+		Preload("OrderDetails").
+		Preload("User").
+		Find(&orders).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+	return orders, count, nil
 }
