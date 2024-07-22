@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .table-container {
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        table th {
+            background-color: #f2f2f2;
+        }
+        .search-bar, .date-filter {
+            margin-bottom: 20px;
+        }
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            color: #333;
+            padding: 8px 16px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            margin: 0 4px;
+            border-radius: 4px;
+        }
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Admin Dashboard</h1>
+
+    <div class="table-container">
+        <h2>Products</h2>
+        <div class="search-bar">
+            <input type="text" id="product-keyword" placeholder="Search products...">
+            <button id="product-search">Search</button>
+        </div>
+        <div class="date-filter">
+            <label for="product-start-date">Start Date:</label>
+            <input type="date" id="product-start-date">
+            <label for="product-end-date">End Date:</label>
+            <input type="date" id="product-end-date">
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Created At</th>
+            </tr>
+            </thead>
+            <tbody id="product-table-body"></tbody>
+        </table>
+        <div class="pagination" id="product-pagination"></div>
+    </div>
+
+    <div class="table-container">
+        <h2>Orders</h2>
+        <div class="search-bar">
+            <input type="text" id="order-keyword" placeholder="Search orders...">
+            <button id="order-search">Search</button>
+        </div>
+        <div class="date-filter">
+            <label for="order-start-date">Start Date:</label>
+            <input type="date" id="order-start-date">
+            <label for="order-end-date">End Date:</label>
+            <input type="date" id="order-end-date">
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Total Price</th>
+                <th>Note</th>
+                <th>Status</th>
+                <th>Created At</th>
+            </tr>
+            </thead>
+            <tbody id="order-table-body"></tbody>
+        </table>
+        <div class="pagination" id="order-pagination"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProducts(0, 10);
+        loadOrders(0, 10);
+    });
+
+    document.getElementById('product-search').addEventListener('click', function(event) {
+        var keyword = document.getElementById('product-keyword').value;
+        var startDate = document.getElementById('product-start-date').value;
+        var endDate = document.getElementById('product-end-date').value;
+        searchProducts(keyword, startDate, endDate, 0, 10);
+    });
+
+    document.getElementById('order-search').addEventListener('click', function(event) {
+        var keyword = document.getElementById('order-keyword').value;
+        var startDate = document.getElementById('order-start-date').value;
+        var endDate = document.getElementById('order-end-date').value;
+        searchOrders(keyword, startDate, endDate, 0, 10);
+    });
+
+    function loadProducts(offset, limit) {
+        fetch(`/search/products?offset=${offset}&limit=${limit}`)
+            .then(response => response.json())
+            .then(data => {
+                updateProductTable(data.products);
+                updateProductPagination(data.total, offset, limit);
+            });
+    }
+
+    function loadOrders(offset, limit) {
+        fetch(`/search/orders?offset=${offset}&limit=${limit}`)
+            .then(response => response.json())
+            .then(data => {
+                updateOrderTable(data.orders);
+                updateOrderPagination(data.total, offset, limit);
+            });
+    }
+
+    function searchProducts(keyword, startDate, endDate, offset, limit) {
+        fetch(`/search/products?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`)
+            .then(response => response.json())
+            .then(data => {
+                updateProductTable(data.products);
+                updateProductPagination(data.total, offset, limit);
+            });
+    }
+
+    function searchOrders(keyword, startDate, endDate, offset, limit) {
+        fetch(`/search/orders?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`)
+            .then(response => response.json())
+            .then(data => {
+                updateOrderTable(data.orders);
+                updateOrderPagination(data.total, offset, limit);
+            });
+    }
+
+    function updateProductTable(products) {
+        const table = document.getElementById('product-table-body');
+        table.innerHTML = '';
+        products.forEach(product => {
+            const row = `<tr>
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.description}</td>
+                <td>${product.price}</td>
+                <td>${product.created_at}</td>
+            </tr>`;
+            table.innerHTML += row;
+        });
+    }
+
+    function updateOrderTable(orders) {
+        const table = document.getElementById('order-table-body');
+        table.innerHTML = '';
+        orders.forEach(order => {
+            const row = `<tr>
+                <td>${order.id}</td>
+                <td>${order.user_id}</td>
+                <td>${order.total_price}</td>
+                <td>${order.note}</td>
+                <td>${order.status}</td>
+                <td>${order.created_at}</td>
+            </tr>`;
+            table.innerHTML += row;
+        });
+    }
+
+    function updateProductPagination(total, offset, limit) {
+        const paginationContainer = document.getElementById('product-pagination');
+        paginationContainer.innerHTML = '';
+
+        const totalPages = Math.ceil(total / limit);
+
+        for (let i = 0; i < totalPages; i++) {
+            const pageLink = document.createElement('a');
+            pageLink.href = '#';
+            pageLink.innerText = i + 1;
+            pageLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                loadProducts(i * limit, limit);
+            });
+            paginationContainer.appendChild(pageLink);
+        }
+    }
+
+    function updateOrderPagination(total, offset, limit) {
+        const paginationContainer = document.getElementById('order-pagination');
+        paginationContainer.innerHTML = '';
+
+        const totalPages = Math.ceil(total / limit);
+
+        for (let i = 0; i < totalPages; i++) {
+            const pageLink = document.createElement('a');
+            pageLink.href = '#';
+            pageLink.innerText = i + 1;
+            pageLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                loadOrders(i * limit, limit);
+            });
+            paginationContainer.appendChild(pageLink);
+        }
+    }
+</script>
+
+</body>
+</html>
