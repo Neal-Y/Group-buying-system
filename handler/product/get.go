@@ -17,12 +17,17 @@ func (h *Product) GetProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"product": product})
 }
 
-func (h *Product) GetAllProducts(c *gin.Context) {
-	products, err := h.productService.FindAllProducts()
+func (h *Product) SearchProducts(c *gin.Context) {
+	params, err := util.SearchParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	products, total, err := h.productService.SearchProducts(params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"products": products})
+	c.JSON(http.StatusOK, gin.H{"products": products, "total": total})
 }

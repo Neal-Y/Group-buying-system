@@ -12,11 +12,11 @@ type ProductRepository interface {
 	InternalFindByID(id int) (*database.Product, error)
 	Update(product *database.Product) error
 	Create(product *database.Product) error
-	FindAll() ([]database.Product, error)
 	FindByName(name string, product *database.Product) error
 	BatchUpdate(products []*database.Product) error
 	FindByIDs(ids []int) ([]*database.Product, error)
 	SoftDelete(product *database.Product) error
+	SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error)
 }
 
 type productRepository struct {
@@ -59,17 +59,6 @@ func (r *productRepository) Update(product *database.Product) error {
 	return r.db.Updates(product).Error
 }
 
-func (r *productRepository) FindAll() ([]database.Product, error) {
-	var products []database.Product
-	err := r.db.Find(&products).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return products, nil
-}
-
 func (r *productRepository) FindByName(name string, product *database.Product) error {
 	return r.db.Where("name = ? AND is_sold_out = ?", name, false).First(product).Error
 }
@@ -98,4 +87,29 @@ func (r *productRepository) FindByIDs(ids []int) ([]*database.Product, error) {
 		return nil, err
 	}
 	return products, nil
+}
+
+func (r *productRepository) SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error) {
+	var products []database.Product
+	var count int64
+
+	query := r.db.Model(&database.Product{})
+
+	if keyword != "" {
+		query = query.Where("name LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+	}
+
+	if !startDate.IsZero() && !endDate.IsZero() {
+		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	err := query.Count(&count).
+		Offset(offset).
+		Limit(limit).
+		Find(&products).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+	return products, count, nil
 }

@@ -23,16 +23,22 @@ func NewOrderHandler(r *gin.RouterGroup) *Order {
 		orderService: orderService,
 	}
 
+	adminRoute(h, r)
 	newRoute(h, r)
+
 	return h
 }
 
 func newRoute(h *Order, r *gin.RouterGroup) {
+	// add user middleware
 	r.POST("/orders", h.CreateOrder)
-	r.GET("/orders/:id", h.GetOrder)
-	r.PATCH("admin/orders/:id", middleware.JWTAuthMiddleware(constant.AdminType), h.UpdateOrder)
 	r.DELETE("/orders/:id", h.DeleteOrder)
-	r.GET("/orders", h.ListOrders)
 	r.GET("/client/history_orders", h.ListHistoryOrdersByUser)
-	r.GET("/pick_up_by_display_name", h.GetOrderByUserDisplayName)
+}
+
+func adminRoute(h *Order, r *gin.RouterGroup) {
+	adminRoute := r.Group("/orders")
+	adminRoute.Use(middleware.JWTAuthMiddleware(constant.AdminType))
+	adminRoute.PATCH("/:id", h.UpdateOrder)
+	adminRoute.GET("/search", h.SearchOrders)
 }

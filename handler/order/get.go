@@ -7,32 +7,6 @@ import (
 	"shopping-cart/util"
 )
 
-func (h *Order) GetOrder(c *gin.Context) {
-	id, err := util.GetIDFromPath(c, "id")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order ID"})
-		return
-	}
-
-	order, err := h.orderService.GetOrderByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"order": order})
-}
-
-func (h *Order) ListOrders(c *gin.Context) {
-	orders, err := h.orderService.ListAllOrders()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"orders": orders})
-}
-
 func (h *Order) ListHistoryOrdersByUser(c *gin.Context) {
 	var orderRequest order.ListHistory
 	err := c.ShouldBindJSON(&orderRequest)
@@ -50,19 +24,18 @@ func (h *Order) ListHistoryOrdersByUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"orders": orders})
 }
 
-func (h *Order) GetOrderByUserDisplayName(c *gin.Context) {
-	var orderRequest order.GetOrderByUsername
-	err := c.ShouldBindJSON(&orderRequest)
+func (h *Order) SearchOrders(c *gin.Context) {
+	params, err := util.SearchParams(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	orders, err := h.orderService.GetOrderByUserDisplayName(orderRequest.DisplayName)
+	orders, total, err := h.orderService.SearchOrders(params)
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "display_name not found"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"orders": orders})
+	c.JSON(http.StatusOK, gin.H{"orders": orders, "total": total})
 }
