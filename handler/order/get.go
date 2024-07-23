@@ -25,7 +25,7 @@ func (h *Order) ListHistoryOrdersByUser(c *gin.Context) {
 }
 
 func (h *Order) SearchOrders(c *gin.Context) {
-	params, err := util.ParseProductSearchParams(c)
+	params, err := util.SearchParams(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

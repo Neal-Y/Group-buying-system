@@ -18,7 +18,7 @@ func (h *Product) GetProduct(c *gin.Context) {
 }
 
 func (h *Product) SearchProducts(c *gin.Context) {
-	params, err := util.ParseProductSearchParams(c)
+	params, err := util.SearchParams(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
