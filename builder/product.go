@@ -48,6 +48,11 @@ func (b *ProductBuilder) SetExpirationTime(expirationTime time.Time) *ProductBui
 	return b
 }
 
+func (b *ProductBuilder) SetSupplier(supplier string) *ProductBuilder {
+	b.product.Supplier = supplier
+	return b
+}
+
 func (b *ProductBuilder) Build() *database.Product {
 	return b.product
 }

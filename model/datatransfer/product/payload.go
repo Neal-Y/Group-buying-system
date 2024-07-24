@@ -11,4 +11,5 @@ type Payload struct {
 	ExpirationTime time.Time  `json:"expiration_time" binding:"required"`
 	IsSoldOut      bool       `json:"is_sold_out"`
 	SoldOutAt      *time.Time `json:"sold_out_at"`
+	Supplier       string     `json:"supplier"`
 }

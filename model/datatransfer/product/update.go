@@ -11,4 +11,5 @@ type Update struct {
 	ExpirationTime time.Time  `json:"expiration_time"`
 	IsSoldOut      bool       `json:"is_sold_out,omitempty"`
 	SoldOutAt      *time.Time `json:"sold_out_at,omitempty"`
+	Supplier       string     `json:"supplier"`
 }

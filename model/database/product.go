@@ -14,6 +14,7 @@ type Product struct {
 	ExpirationTime time.Time  `json:"expiration_time" gorm:"type:datetime"`
 	IsSoldOut      bool       `json:"is_sold_out" gorm:"default:false"`
 	SoldOutAt      *time.Time `json:"sold_out_at" gorm:"default:NULL"`
+	Supplier       string     `json:"supplier" gorm:"type:varchar(255)"`
 }
 
 func (Product) TableName() string {
