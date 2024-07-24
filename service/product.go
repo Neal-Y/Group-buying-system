@@ -2,7 +2,9 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"shopping-cart/builder"
+	"shopping-cart/config"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/product"
 	"shopping-cart/repository"
@@ -11,7 +13,7 @@ import (
 
 type ProductService interface {
 	UpdateProduct(id int, productDto *product.Update) error
-	CreateProduct(productDto *product.Payload) (*database.Product, error)
+	CreateProduct(productDto *product.Payload) (*product.CreatedResponse, error)
 	DeleteProduct(id int) error
 	FindByID(id int) (*database.Product, error)
 	SearchProducts(params util.SearchContainer) ([]database.Product, int64, error)
@@ -47,8 +49,10 @@ func (s *productService) UpdateProduct(id int, productDto *product.Update) error
 	return s.productRepo.Update(product)
 }
 
-func (s *productService) CreateProduct(productDto *product.Payload) (*database.Product, error) {
+func (s *productService) CreateProduct(productDto *product.Payload) (*product.CreatedResponse, error) {
 	var check database.Product
+	var result product.CreatedResponse
+
 	err := s.productRepo.FindByName(productDto.Name, &check)
 	if err == nil {
 		return nil, errors.New("product name already exists")
@@ -70,7 +74,12 @@ func (s *productService) CreateProduct(productDto *product.Payload) (*database.P
 		return nil, err
 	}
 
-	return product, nil
+	redirectURL := fmt.Sprintf("%s/api/home?productID=%d", config.AppConfig.NgrokURL, product.ID)
+
+	result.Product = product
+	result.Url = redirectURL
+
+	return &result, nil
 }
 
 func (s *productService) DeleteProduct(id int) error {
