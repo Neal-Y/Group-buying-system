@@ -11,10 +11,10 @@
             const displayName = urlParams.get('display_name');
 
             if (token) {
-                localStorage.setItem('jwt', token);
+                localStorage.setItem('Authorization', token);
                 localStorage.setItem('display_name', displayName);
                 setTimeout(function() {
-                    window.location.href = '/api/home?token=' + token + '&display_name=' + encodeURIComponent(displayName);
+                    window.location.href = '/api/home';
                 }, 3000);
             } else {
                 console.error('No token found in the URL');

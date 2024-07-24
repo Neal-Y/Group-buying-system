@@ -20,7 +20,6 @@ func redirectToLogin(c *gin.Context, expectType string) {
 func JWTAuthMiddleware(expectType string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
-		//authHeader := c.Query("token") for user 因為目前是從callback url中擷取token
 
 		if authHeader == "" {
 			redirectToLogin(c, expectType)
