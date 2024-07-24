@@ -41,6 +41,7 @@ func (s *productService) UpdateProduct(id int, productDto *product.Update) error
 		SetStock(productDto.Stock).
 		SetDescription(productDto.Description).
 		SetExpirationTime(productDto.ExpirationTime).
+		SetSupplier(productDto.Supplier).
 		Build()
 
 	return s.productRepo.Update(product)
@@ -60,6 +61,7 @@ func (s *productService) CreateProduct(productDto *product.Payload) (*database.P
 		SetStock(productDto.Stock).
 		SetDescription(productDto.Description).
 		SetExpirationTime(productDto.ExpirationTime).
+		SetSupplier(productDto.Supplier).
 		Build()
 
 	err = s.productRepo.Create(product)
