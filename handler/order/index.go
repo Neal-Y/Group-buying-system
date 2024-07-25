@@ -6,6 +6,7 @@ import (
 	"shopping-cart/middleware"
 	"shopping-cart/repository"
 	"shopping-cart/service"
+	"shopping-cart/util"
 )
 
 type Order struct {
@@ -16,8 +17,10 @@ func NewOrderHandler(r *gin.RouterGroup) *Order {
 	orderRepo := repository.NewOrderRepository()
 	productRepo := repository.NewProductRepository()
 	userRepo := repository.NewUserRepository()
+	notificationService := service.NewNotificationService()
+	notificationCache := util.NewNotificationCache()
 
-	orderService := service.NewOrderService(orderRepo, productRepo, userRepo)
+	orderService := service.NewOrderService(orderRepo, productRepo, userRepo, notificationService, notificationCache)
 
 	h := &Order{
 		orderService: orderService,
