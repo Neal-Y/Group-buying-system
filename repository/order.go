@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
@@ -16,6 +17,7 @@ type OrderRepository interface {
 	FindPendingOrdersByUserIDTx(tx *gorm.DB, userID int) ([]database.Order, error)
 	FindByUserIDAndProductID(userID, productID int) ([]database.Order, error)
 	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error)
+	GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error)
 }
 
 type orderRepository struct {
@@ -101,4 +103,18 @@ func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.T
 		return nil, 0, err
 	}
 	return orders, count, nil
+}
+
+func (r *orderRepository) GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error) {
+	var total float64
+	result := r.db.Model(&database.Order{}).
+		Select("COALESCE(SUM(total_price), 0)").
+		Where("status = ? AND updated_at BETWEEN ? AND ?", "completed", startDate, endDate).
+		Scan(&total)
+
+	if result.Error != nil {
+		fmt.Printf("Error querying revenue: %v\n", result.Error)
+		return 0, result.Error
+	}
+	return total, nil
 }
