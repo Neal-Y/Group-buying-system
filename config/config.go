@@ -14,6 +14,10 @@ type Config struct {
 	Secret           string
 	Gmail            string
 	GmailSecret      string
+	LineAdminID      string
+	LineMsgID        string
+	LineMsgSecret    string
+	LineMsgToken     string
 }
 
 var AppConfig Config
@@ -34,5 +38,9 @@ func LoadConfig() {
 		Secret:           viper.GetString("SECRET"),
 		Gmail:            viper.GetString("GMAIL"),
 		GmailSecret:      viper.GetString("GMAIL_SECRET"),
+		LineAdminID:      viper.GetString("LINE_ADMIN_ID"),
+		LineMsgID:        viper.GetString("LINE_MSG_ID"),
+		LineMsgSecret:    viper.GetString("LINE_MSG_SECRET"),
+		LineMsgToken:     viper.GetString("LINE_MSG_TOKEN"),
 	}
 }
