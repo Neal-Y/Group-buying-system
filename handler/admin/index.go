@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"shopping-cart/constant"
 	"shopping-cart/middleware"
-	"shopping-cart/repository"
 	"shopping-cart/service"
 )
 
@@ -13,12 +12,7 @@ type Admin struct {
 	adminService service.AdminService
 }
 
-func NewAdminController(r *gin.RouterGroup) *Admin {
-	adminRepo := repository.NewAdminRepository()
-	verifyRepo := repository.NewVerifyRepository()
-
-	adminService := service.NewAdminService(adminRepo, verifyRepo)
-
+func NewAdminController(r *gin.RouterGroup, adminService service.AdminService) *Admin {
 	h := &Admin{
 		adminService: adminService,
 	}

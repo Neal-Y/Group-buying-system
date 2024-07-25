@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"shopping-cart/constant"
 	"shopping-cart/middleware"
-	"shopping-cart/repository"
 	"shopping-cart/service"
 )
 
@@ -12,13 +11,7 @@ type User struct {
 	userService service.UserService
 }
 
-func NewAuthorization(r *gin.RouterGroup) *User {
-	userRepo := repository.NewUserRepository()
-	orderRepo := repository.NewOrderRepository()
-	verifyRepo := repository.NewVerifyRepository()
-
-	userService := service.NewUserService(userRepo, orderRepo, verifyRepo)
-
+func NewAuthorization(r *gin.RouterGroup, userService service.UserService) *User {
 	h := &User{
 		userService: userService,
 	}

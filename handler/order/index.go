@@ -4,24 +4,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"shopping-cart/constant"
 	"shopping-cart/middleware"
-	"shopping-cart/repository"
 	"shopping-cart/service"
-	"shopping-cart/util"
 )
 
 type Order struct {
 	orderService service.OrderService
 }
 
-func NewOrderHandler(r *gin.RouterGroup) *Order {
-	orderRepo := repository.NewOrderRepository()
-	productRepo := repository.NewProductRepository()
-	userRepo := repository.NewUserRepository()
-	notificationService := service.NewNotificationService()
-	notificationCache := util.NewNotificationCache()
-
-	orderService := service.NewOrderService(orderRepo, productRepo, userRepo, notificationService, notificationCache)
-
+func NewOrderHandler(r *gin.RouterGroup, orderService service.OrderService) *Order {
 	h := &Order{
 		orderService: orderService,
 	}
