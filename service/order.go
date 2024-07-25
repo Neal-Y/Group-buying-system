@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"shopping-cart/builder"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/order"
@@ -19,16 +20,20 @@ type OrderService interface {
 }
 
 type orderService struct {
-	orderRepo   repository.OrderRepository
-	productRepo repository.ProductRepository
-	userRepo    repository.UserRepository
+	orderRepo           repository.OrderRepository
+	productRepo         repository.ProductRepository
+	userRepo            repository.UserRepository
+	notificationService NotificationService
+	notificationCache   *util.NotificationCache
 }
 
-func NewOrderService(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, userRepo repository.UserRepository) OrderService {
+func NewOrderService(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, userRepo repository.UserRepository, notificationService NotificationService, notificationCache *util.NotificationCache) OrderService {
 	return &orderService{
-		orderRepo:   orderRepo,
-		productRepo: productRepo,
-		userRepo:    userRepo,
+		orderRepo:           orderRepo,
+		productRepo:         productRepo,
+		userRepo:            userRepo,
+		notificationService: notificationService,
+		notificationCache:   notificationCache,
 	}
 }
 
@@ -60,11 +65,22 @@ func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64
 		}
 
 		if product.Stock < detail.Quantity {
-			return 0, nil, errors.New("Insufficient stock for product " + product.Name)
+			return 0, nil, errors.New(fmt.Sprintf("%s庫存不足，只剩下%d個", product.Name, product.Stock))
 		}
 
 		if time.Now().After(product.ExpirationTime) {
 			return 0, nil, errors.New("Product " + product.Name + " is expired")
+		}
+
+		if s.notificationCache.Get(product.ID) == 0 {
+			s.notificationCache.Set(product.ID, product.Stock)
+		}
+
+		threshold := int(0.5 * float64(s.notificationCache.Get(product.ID)))
+
+		if product.Stock-detail.Quantity < threshold {
+			s.notificationService.Notify(product.ID, product.Name, product.Stock-detail.Quantity)
+			s.notificationCache.Set(product.ID, product.Stock-detail.Quantity)
 		}
 
 		orderRequest.OrderDetails[i].Price = product.Price
