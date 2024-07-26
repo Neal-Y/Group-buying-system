@@ -46,3 +46,8 @@ func SendResetCodeEmail(to, code string) error {
 	body := fmt.Sprintf("Your verification code is: %s", code)
 	return ec.SendEmail(to, subject, body)
 }
+
+func SendEmail(to, subject, body string) error {
+	ec := NewEmailConfig()
+	return ec.SendEmail(to, subject, body)
+}
