@@ -32,8 +32,7 @@ func loginRoute(h *Admin, r *gin.RouterGroup) {
 func adminRoute(h *Admin, r *gin.RouterGroup) {
 	adminRoute := r.Group("/admin")
 	adminRoute.Use(middleware.JWTAuthMiddleware(constant.AdminType))
-	adminRoute.GET("/:id", h.GetAdmin)
-	adminRoute.GET("", h.ListAdmins)
+	adminRoute.GET("", h.GetAdmin)
 	adminRoute.PATCH("/:id", h.UpdateAdmin)
 }
 
