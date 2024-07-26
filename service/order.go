@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"shopping-cart/builder"
-	"shopping-cart/config"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/order"
 	"shopping-cart/repository"
@@ -25,15 +24,17 @@ type orderService struct {
 	orderRepo           repository.OrderRepository
 	productRepo         repository.ProductRepository
 	userRepo            repository.UserRepository
+	adminRepo           repository.AdminRepository
 	notificationService NotificationService
 	notificationCache   *util.NotificationCache
 }
 
-func NewOrderService(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, userRepo repository.UserRepository, notificationService NotificationService, notificationCache *util.NotificationCache) OrderService {
+func NewOrderService(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, userRepo repository.UserRepository, adminRepo repository.AdminRepository, notificationService NotificationService, notificationCache *util.NotificationCache) OrderService {
 	return &orderService{
 		orderRepo:           orderRepo,
 		productRepo:         productRepo,
 		userRepo:            userRepo,
+		adminRepo:           adminRepo,
 		notificationService: notificationService,
 		notificationCache:   notificationCache,
 	}
@@ -42,6 +43,7 @@ func NewOrderService(orderRepo repository.OrderRepository, productRepo repositor
 func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64, map[int]*database.Product, error) {
 	totalPrice := 0.0
 	productMap := make(map[int]*database.Product)
+	admin, _ := s.adminRepo.GetAdmin()
 
 	productIDs := make([]int, 0, len(orderRequest.OrderDetails))
 	for _, detail := range orderRequest.OrderDetails {
@@ -82,7 +84,7 @@ func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64
 
 		if product.Stock-detail.Quantity < threshold {
 			message := fmt.Sprintf("提醒: 商品 %s (ID: %d) 庫存已低於50%% 目前剩下: %d個單位", product.Name, product.ID, product.Stock-detail.Quantity)
-			err := s.notificationService.Notify(config.AppConfig.LineAdminID, message)
+			err := s.notificationService.Notify(admin.LineID, message)
 			if err != nil {
 				return 0, nil, err
 			}
