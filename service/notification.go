@@ -1,19 +1,19 @@
 package service
 
 import (
-	"fmt"
 	"github.com/line/line-bot-sdk-go/linebot"
 	"log"
 	"shopping-cart/config"
+	"shopping-cart/util"
 )
 
 type NotificationService interface {
-	Notify(productID int, productName string, currentStock int)
+	Notify(userID string, message string) error
+	SendEmail(to, subject, body string) error
 }
 
 type notificationService struct {
-	bot    *linebot.Client
-	userID string
+	bot *linebot.Client
 }
 
 func NewNotificationService() NotificationService {
@@ -28,16 +28,18 @@ func NewNotificationService() NotificationService {
 	}
 
 	return &notificationService{
-		bot:    bot,
-		userID: userID,
+		bot: bot,
 	}
 }
 
-func (n *notificationService) Notify(productID int, productName string, currentStock int) {
-	message := fmt.Sprintf("提醒: 商品 %s (ID: %d) 庫存已低於50%% 目前剩下: %d個單位", productName, productID, currentStock)
-
-	_, err := n.bot.PushMessage(n.userID, linebot.NewTextMessage(message)).Do()
+func (n *notificationService) Notify(userID string, message string) error {
+	_, err := n.bot.PushMessage(userID, linebot.NewTextMessage(message)).Do()
 	if err != nil {
-		log.Printf("Error sending message: %v", err)
+		return err
 	}
+	return nil
+}
+
+func (n *notificationService) SendEmail(to, subject, body string) error {
+	return util.SendEmail(to, subject, body)
 }
