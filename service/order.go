@@ -17,6 +17,7 @@ type OrderService interface {
 	DeleteOrder(id int) error
 	ListHistoryOrdersByDisplayNameAndProductID(displayName string, productID int) ([]database.Order, error)
 	SearchOrders(params util.SearchContainer) ([]database.Order, int64, error)
+	GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error)
 }
 
 type orderService struct {
@@ -195,4 +196,8 @@ func (s *orderService) ListHistoryOrdersByDisplayNameAndProductID(displayName st
 
 func (s *orderService) SearchOrders(params util.SearchContainer) ([]database.Order, int64, error) {
 	return s.orderRepo.SearchOrders(params.Keyword, params.StartDate, params.EndDate, params.Offset, params.Limit)
+}
+
+func (s *orderService) GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error) {
+	return s.orderRepo.GetRevenueByTimePeriod(startDate, endDate)
 }

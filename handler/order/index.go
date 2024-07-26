@@ -35,4 +35,5 @@ func adminRoute(h *Order, r *gin.RouterGroup) {
 	adminRoute.Use(middleware.JWTAuthMiddleware(constant.AdminType))
 	adminRoute.PATCH("/:id", h.UpdateOrder)
 	adminRoute.GET("/search", h.SearchOrders)
+	adminRoute.GET("/revenue", h.GetRevenue)
 }

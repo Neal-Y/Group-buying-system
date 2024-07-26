@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const revenueDisplay = document.getElementById('revenue-display');
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+
+            function formatDate(date) {
+                const d = new Date(date);
+                let month = '' + (d.getMonth() + 1);
+                let day = '' + d.getDate();
+                const year = d.getFullYear();
+
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
+
+                return [year, month, day].join('-');
+            }
+
+            function fetchRevenue(startDate, endDate) {
+                axios.get('/api/orders/revenue', {
+                    params: {
+                        start_date: startDate,
+                        end_date: endDate
+                    }
+                })
+                    .then(function (response) {
+                        revenueDisplay.textContent = `Revenue: $${response.data.revenue}`;
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching revenue:', error);
+                        revenueDisplay.textContent = `Error fetching revenue`;
+                    });
+            }
+
+            // 默认请求当前月份的营业额
+            const now = new Date();
+            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            startDateInput.value = formatDate(firstDayOfMonth);
+            endDateInput.value = formatDate(lastDayOfMonth);
+            fetchRevenue(startDateInput.value, endDateInput.value);
+
+            // 当日期输入更改时，自动请求新的营业额
+            startDateInput.addEventListener('change', function () {
+                fetchRevenue(startDateInput.value, endDateInput.value);
+            });
+
+            endDateInput.addEventListener('change', function () {
+                fetchRevenue(startDateInput.value, endDateInput.value);
+            });
+        });
+    </script>
+</head>
+<body>
+<h1>Revenue Report</h1>
+<label for="start-date">Start Date:</label>
+<input type="date" id="start-date">
+<label for="end-date">End Date:</label>
+<input type="date" id="end-date">
+<div id="revenue-display">Revenue: $0.00</div>
+</body>
+</html>
