@@ -9,9 +9,8 @@ import (
 type AdminRepository interface {
 	Create(admin *database.Admin) error
 	FindByUsername(username string) (*database.Admin, error)
-	FindAll() ([]database.Admin, error)
 	FindByEmail(email string) (*database.Admin, error)
-	FindByID(id int) (*database.Admin, error)
+	GetAdmin() (*database.Admin, error)
 	Update(admin *database.Admin) error
 }
 
@@ -38,16 +37,6 @@ func (r *adminRepository) FindByUsername(username string) (*database.Admin, erro
 	return &admin, nil
 }
 
-func (r *adminRepository) FindAll() ([]database.Admin, error) {
-	var admins []database.Admin
-	err := r.db.Find(&admins).Error
-	if err != nil {
-		return nil, err
-	}
-	return admins, nil
-
-}
-
 func (r *adminRepository) FindByEmail(email string) (*database.Admin, error) {
 	var admin database.Admin
 	err := r.db.Where("email = ?", email).First(&admin).Error
@@ -57,9 +46,9 @@ func (r *adminRepository) FindByEmail(email string) (*database.Admin, error) {
 	return &admin, nil
 }
 
-func (r *adminRepository) FindByID(id int) (*database.Admin, error) {
+func (r *adminRepository) GetAdmin() (*database.Admin, error) {
 	var admin database.Admin
-	err := r.db.First(&admin, id).Error
+	err := r.db.First(&admin).Error
 	if err != nil {
 		return nil, err
 	}
