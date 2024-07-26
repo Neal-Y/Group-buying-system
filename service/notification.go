@@ -22,11 +22,6 @@ func NewNotificationService() NotificationService {
 		log.Fatal(err)
 	}
 
-	userID := config.AppConfig.LineAdminID
-	if userID == "" {
-		log.Fatal("LINE_USER_ID is not set in the environment variables")
-	}
-
 	return &notificationService{
 		bot: bot,
 	}
