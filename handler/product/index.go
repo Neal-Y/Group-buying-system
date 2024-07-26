@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"shopping-cart/constant"
 	"shopping-cart/middleware"
-	"shopping-cart/repository"
 	"shopping-cart/service"
 )
 
@@ -12,11 +11,7 @@ type Product struct {
 	productService service.ProductService
 }
 
-func NewProductController(r *gin.RouterGroup) *Product {
-	productRepo := repository.NewProductRepository()
-
-	productService := service.NewProductService(productRepo)
-
+func NewProductController(r *gin.RouterGroup, productService service.ProductService) *Product {
 	h := &Product{
 		productService: productService,
 	}

@@ -72,7 +72,7 @@ func (r *productRepository) SoftDelete(product *database.Product) error {
 
 func (r *productRepository) BatchUpdate(products []*database.Product) error {
 	for _, product := range products {
-		err := r.db.Updates(product).Error
+		err := r.db.Save(product).Error
 		if err != nil {
 			return err
 		}

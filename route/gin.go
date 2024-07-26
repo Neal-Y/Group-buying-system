@@ -6,6 +6,9 @@ import (
 	"shopping-cart/handler/order"
 	"shopping-cart/handler/product"
 	"shopping-cart/handler/user"
+	"shopping-cart/repository"
+	"shopping-cart/service"
+	"shopping-cart/util"
 )
 
 func InitGinServer() (server *gin.Engine, err error) {
@@ -23,11 +26,24 @@ func GinRouter() (server *gin.Engine) {
 
 	api := server.Group("/api")
 
-	product.NewProductController(api)
-	order.NewOrderHandler(api)
+	orderRepo := repository.NewOrderRepository()
+	productRepo := repository.NewProductRepository()
+	userRepo := repository.NewUserRepository()
+	notificationService := service.NewNotificationService()
+	notificationCache := util.NewNotificationCache()
+	adminRepo := repository.NewAdminRepository()
+	verifyRepo := repository.NewVerifyRepository()
 
-	user.NewAuthorization(api)
-	admin.NewAdminController(api)
+	adminService := service.NewAdminService(adminRepo, verifyRepo)
+	orderService := service.NewOrderService(orderRepo, productRepo, userRepo, notificationService, notificationCache)
+	productService := service.NewProductService(productRepo, notificationCache)
+	userService := service.NewUserService(userRepo, orderRepo, verifyRepo)
+
+	product.NewProductController(api, productService)
+	order.NewOrderHandler(api, orderService)
+
+	user.NewAuthorization(api, userService)
+	admin.NewAdminController(api, adminService)
 
 	return server
 }

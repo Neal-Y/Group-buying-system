@@ -20,12 +20,14 @@ type ProductService interface {
 }
 
 type productService struct {
-	productRepo repository.ProductRepository
+	productRepo       repository.ProductRepository
+	notificationCache *util.NotificationCache
 }
 
-func NewProductService(repo repository.ProductRepository) ProductService {
+func NewProductService(repo repository.ProductRepository, notificationCache *util.NotificationCache) ProductService {
 	return &productService{
-		productRepo: repo,
+		productRepo:       repo,
+		notificationCache: notificationCache,
 	}
 }
 
@@ -35,12 +37,19 @@ func (s *productService) UpdateProduct(id int, productDto *product.Update) error
 		return err
 	}
 
+	var number int
+
+	if productDto.Stock != 0 {
+		number = product.Stock + productDto.Stock
+		s.notificationCache.Set(product.ID, number)
+	}
+
 	product = builder.NewProductBuilder().
 		SetID(product.ID).
 		SetName(productDto.Name).
 		SetPicture(productDto.Picture).
 		SetPrice(productDto.Price).
-		SetStock(productDto.Stock).
+		SetStock(number).
 		SetDescription(productDto.Description).
 		SetExpirationTime(productDto.ExpirationTime).
 		SetSupplier(productDto.Supplier).
