@@ -1,17 +1,26 @@
 package util
 
 import (
-	"errors"
 	"time"
 )
 
-func ValidateTime(dateStr string) (time.Time, error) {
-	if dateStr == "" {
-		return time.Time{}, errors.New("date string is empty")
-	}
-	parsedDate, err := time.Parse("2006-01-02", dateStr)
+func ConvertDateRangeToUTC(startDateStr, endDateStr, timezone string) (time.Time, time.Time, error) {
+	loc, err := time.LoadLocation(timezone)
 	if err != nil {
-		return time.Time{}, errors.New("invalid date format")
+		return time.Time{}, time.Time{}, err
 	}
-	return parsedDate, nil
+
+	startDate, err := time.ParseInLocation("2006-01-02", startDateStr, loc)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	endDate, err := time.ParseInLocation("2006-01-02", endDateStr, loc)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+
+	startDateUTC := startDate.UTC()
+	endDateUTC := endDate.Add(24 * time.Hour).UTC().Add(-1 * time.Nanosecond)
+
+	return startDateUTC, endDateUTC, nil
 }
