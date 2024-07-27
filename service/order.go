@@ -24,15 +24,17 @@ type orderService struct {
 	orderRepo           repository.OrderRepository
 	productRepo         repository.ProductRepository
 	userRepo            repository.UserRepository
+	adminRepo           repository.AdminRepository
 	notificationService NotificationService
 	notificationCache   *util.NotificationCache
 }
 
-func NewOrderService(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, userRepo repository.UserRepository, notificationService NotificationService, notificationCache *util.NotificationCache) OrderService {
+func NewOrderService(orderRepo repository.OrderRepository, productRepo repository.ProductRepository, userRepo repository.UserRepository, adminRepo repository.AdminRepository, notificationService NotificationService, notificationCache *util.NotificationCache) OrderService {
 	return &orderService{
 		orderRepo:           orderRepo,
 		productRepo:         productRepo,
 		userRepo:            userRepo,
+		adminRepo:           adminRepo,
 		notificationService: notificationService,
 		notificationCache:   notificationCache,
 	}
@@ -41,6 +43,7 @@ func NewOrderService(orderRepo repository.OrderRepository, productRepo repositor
 func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64, map[int]*database.Product, error) {
 	totalPrice := 0.0
 	productMap := make(map[int]*database.Product)
+	admin, _ := s.adminRepo.GetAdmin()
 
 	productIDs := make([]int, 0, len(orderRequest.OrderDetails))
 	for _, detail := range orderRequest.OrderDetails {
@@ -80,7 +83,11 @@ func validateOrderRequest(s *orderService, orderRequest *order.Request) (float64
 		threshold := int(0.5 * float64(s.notificationCache.Get(product.ID)))
 
 		if product.Stock-detail.Quantity < threshold {
-			s.notificationService.Notify(product.ID, product.Name, product.Stock-detail.Quantity)
+			message := fmt.Sprintf("提醒: 商品 %s (ID: %d) 庫存已低於50%% 目前剩下: %d個單位", product.Name, product.ID, product.Stock-detail.Quantity)
+			err := s.notificationService.Notify(admin.LineID, message)
+			if err != nil {
+				return 0, nil, err
+			}
 			s.notificationCache.Set(product.ID, product.Stock-detail.Quantity)
 		}
 
@@ -114,10 +121,13 @@ func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order
 	}
 
 	var productsToUpdate []*database.Product
+	var notificationMessages []string
+
 	for _, detail := range order.OrderDetails {
 		product := productMap[detail.ProductID]
 		product.Stock -= detail.Quantity
 		productsToUpdate = append(productsToUpdate, product)
+		notificationMessages = append(notificationMessages, fmt.Sprintf("感謝訂購商品 %s 數量為 %d 個單位", product.Name, detail.Quantity))
 	}
 
 	err = s.productRepo.BatchUpdate(productsToUpdate)
@@ -127,6 +137,29 @@ func (s *orderService) CreateOrder(orderRequest *order.Request) (*database.Order
 	}
 
 	tx.Commit()
+
+	combinedMessage := ""
+	for _, message := range notificationMessages {
+		combinedMessage += message + "\n"
+	}
+
+	user, err := s.userRepo.FindByID(order.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.PasswordHash != "" {
+		subject := "感謝您的訂購"
+		err := s.notificationService.SendEmail(user.Email, subject, combinedMessage)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := s.notificationService.Notify(user.LineID, combinedMessage)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return order, nil
 }

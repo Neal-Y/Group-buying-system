@@ -35,7 +35,7 @@ func GinRouter() (server *gin.Engine) {
 	verifyRepo := repository.NewVerifyRepository()
 
 	adminService := service.NewAdminService(adminRepo, verifyRepo)
-	orderService := service.NewOrderService(orderRepo, productRepo, userRepo, notificationService, notificationCache)
+	orderService := service.NewOrderService(orderRepo, productRepo, userRepo, adminRepo, notificationService, notificationCache)
 	productService := service.NewProductService(productRepo, notificationCache)
 	userService := service.NewUserService(userRepo, orderRepo, verifyRepo)
 

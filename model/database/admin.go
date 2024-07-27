@@ -5,6 +5,7 @@ type Admin struct {
 	Username     string `gorm:"unique;not null"`
 	PasswordHash string `gorm:"not null"`
 	Email        string `gorm:"unique;not null"`
+	LineID       string `gorm:"unique"`
 }
 
 func (Admin) TableName() string {

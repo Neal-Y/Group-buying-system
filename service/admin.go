@@ -15,9 +15,8 @@ import (
 type AdminService interface {
 	RegisterAdmin(admin *admin.Request) error
 	Login(req *admin.Login) (string, error)
-	GetAdminByID(id int) (*database.Admin, error)
+	GetAdmin() (*database.Admin, error)
 	GetAdminByUsername(username string) (*database.Admin, error)
-	GetAllAdmin() ([]database.Admin, error)
 	UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error)
 	RequestPasswordReset(email string) error
 	ResetPassword(email, code, newPassword string) error
@@ -73,16 +72,12 @@ func (s *adminService) GetAdminByUsername(username string) (*database.Admin, err
 	return s.adminRepo.FindByUsername(username)
 }
 
-func (s *adminService) GetAllAdmin() ([]database.Admin, error) {
-	return s.adminRepo.FindAll()
-}
-
-func (s *adminService) GetAdminByID(id int) (*database.Admin, error) {
-	return s.adminRepo.FindByID(id)
+func (s *adminService) GetAdmin() (*database.Admin, error) {
+	return s.adminRepo.GetAdmin()
 }
 
 func (s *adminService) UpdateAdmin(id int, req *admin.UpdateRequest) (*database.Admin, error) {
-	admin, err := s.adminRepo.FindByID(id)
+	admin, err := s.adminRepo.GetAdmin()
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +94,10 @@ func (s *adminService) UpdateAdmin(id int, req *admin.UpdateRequest) (*database.
 	}
 	if req.Email != "" {
 		admin.Email = req.Email
+	}
+
+	if req.LineID != "" {
+		admin.LineID = req.LineID
 	}
 
 	err = s.adminRepo.Update(admin)
