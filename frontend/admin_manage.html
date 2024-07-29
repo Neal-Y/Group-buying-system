@@ -200,10 +200,16 @@
         return { 'Authorization': token };
     }
 
+    function adjustDateForBackend(date) {
+        var adjustedDate = new Date(date);
+        adjustedDate.setDate(adjustedDate.getDate() + 1);
+        return adjustedDate.toISOString().substr(0, 10);
+    }
+
     function loadProducts(offset, limit, timezone) {
         var startDate = document.getElementById('product-start-date').value;
         var endDate = document.getElementById('product-end-date').value;
-        fetch(`/api/admin/products/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+        fetch(`/api/admin/products/search?start_date=${adjustDateForBackend(startDate)}&end_date=${adjustDateForBackend(endDate)}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
@@ -216,7 +222,7 @@
     function loadOrders(offset, limit, timezone) {
         var startDate = document.getElementById('order-start-date').value;
         var endDate = document.getElementById('order-end-date').value;
-        fetch(`/api/orders/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+        fetch(`/api/orders/search?start_date=${adjustDateForBackend(startDate)}&end_date=${adjustDateForBackend(endDate)}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
@@ -227,7 +233,7 @@
     }
 
     function searchProducts(keyword, startDate, endDate, offset, limit, timezone) {
-        fetch(`/api/admin/products/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+        fetch(`/api/admin/products/search?keyword=${keyword}&start_date=${adjustDateForBackend(startDate)}&end_date=${adjustDateForBackend(endDate)}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
@@ -238,7 +244,7 @@
     }
 
     function searchOrders(keyword, startDate, endDate, offset, limit, timezone) {
-        fetch(`/api/orders/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+        fetch(`/api/orders/search?keyword=${keyword}&start_date=${adjustDateForBackend(startDate)}&end_date=${adjustDateForBackend(endDate)}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
@@ -251,7 +257,7 @@
     function loadRevenue(timezone) {
         var startDate = document.getElementById('revenue-start-date').value;
         var endDate = document.getElementById('revenue-end-date').value;
-        fetch(`/api/orders/revenue?start_date=${startDate}&end_date=${endDate}&timezone=${timezone}`, {
+        fetch(`/api/orders/revenue?start_date=${adjustDateForBackend(startDate)}&end_date=${adjustDateForBackend(endDate)}&timezone=${timezone}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
