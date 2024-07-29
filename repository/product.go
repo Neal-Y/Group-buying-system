@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
 	"time"
@@ -92,11 +93,11 @@ func (r *productRepository) FindByIDs(ids []int) ([]*database.Product, error) {
 func (r *productRepository) SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error) {
 	var products []database.Product
 	var count int64
-
+	log.Printf("keyword: %s, startDate: %s, endDate: %s, offset: %d, limit: %d", keyword, startDate, endDate, offset, limit)
 	query := r.db.Model(&database.Product{})
 
 	if keyword != "" {
-		query = query.Where("name LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+		query = query.Where("name LIKE ? OR description LIKE ? OR supplier LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
 	if !startDate.IsZero() && !endDate.IsZero() {
