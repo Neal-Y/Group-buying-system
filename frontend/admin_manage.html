@@ -153,96 +153,106 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        loadProducts(0, 10);
-        loadOrders(0, 10);
-        loadRevenue();
+        var today = new Date();
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        var firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().substr(0, 10);
+        var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().substr(0, 10);
+
+        document.getElementById('product-start-date').value = firstDayOfMonth;
+        document.getElementById('product-end-date').value = lastDayOfMonth;
+        document.getElementById('order-start-date').value = firstDayOfMonth;
+        document.getElementById('order-end-date').value = lastDayOfMonth;
+        document.getElementById('revenue-start-date').value = firstDayOfMonth;
+        document.getElementById('revenue-end-date').value = lastDayOfMonth;
+
+        loadProducts(0, 10, timezone);
+        loadOrders(0, 10, timezone);
+        loadRevenue(timezone);
     });
 
     document.getElementById('product-search').addEventListener('click', function(event) {
         var keyword = document.getElementById('product-keyword').value;
         var startDate = document.getElementById('product-start-date').value;
         var endDate = document.getElementById('product-end-date').value;
-        searchProducts(keyword, startDate, endDate, 0, 10);
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        searchProducts(keyword, startDate, endDate, 0, 10, timezone);
     });
 
     document.getElementById('order-search').addEventListener('click', function(event) {
         var keyword = document.getElementById('order-keyword').value;
         var startDate = document.getElementById('order-start-date').value;
         var endDate = document.getElementById('order-end-date').value;
-        searchOrders(keyword, startDate, endDate, 0, 10);
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        searchOrders(keyword, startDate, endDate, 0, 10, timezone);
     });
 
-    document.getElementById('revenue-start-date').addEventListener('change', loadRevenue);
-    document.getElementById('revenue-end-date').addEventListener('change', loadRevenue);
+    document.getElementById('revenue-start-date').addEventListener('change', function() {
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        loadRevenue(timezone);
+    });
+    document.getElementById('revenue-end-date').addEventListener('change', function() {
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        loadRevenue(timezone);
+    });
 
-    function getAuthToken() {
-        return localStorage.getItem('Authorization');
+    function getAuthHeaders() {
+        const token = localStorage.getItem('Authorization');
+        return { 'Authorization': token };
     }
 
-    function loadProducts(offset, limit) {
-        fetch(`/api/admin/products/search?offset=${offset}&limit=${limit}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': getAuthToken()
-            }
+    function loadProducts(offset, limit, timezone) {
+        var startDate = document.getElementById('product-start-date').value;
+        var endDate = document.getElementById('product-end-date').value;
+        fetch(`/api/admin/products/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
         })
             .then(response => response.json())
             .then(data => {
                 updateProductTable(data.products);
-                updateProductPagination(data.total, offset, limit);
+                updateProductPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function loadOrders(offset, limit) {
-        fetch(`/api/orders/search?offset=${offset}&limit=${limit}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': getAuthToken()
-            }
+    function loadOrders(offset, limit, timezone) {
+        var startDate = document.getElementById('order-start-date').value;
+        var endDate = document.getElementById('order-end-date').value;
+        fetch(`/api/orders/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
         })
             .then(response => response.json())
             .then(data => {
                 updateOrderTable(data.orders);
-                updateOrderPagination(data.total, offset, limit);
+                updateOrderPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function searchProducts(keyword, startDate, endDate, offset, limit) {
-        fetch(`/api/admin/products/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': getAuthToken()
-            }
+    function searchProducts(keyword, startDate, endDate, offset, limit, timezone) {
+        fetch(`/api/admin/products/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
         })
             .then(response => response.json())
             .then(data => {
                 updateProductTable(data.products);
-                updateProductPagination(data.total, offset, limit);
+                updateProductPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function searchOrders(keyword, startDate, endDate, offset, limit) {
-        fetch(`/api/orders/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': getAuthToken()
-            }
+    function searchOrders(keyword, startDate, endDate, offset, limit, timezone) {
+        fetch(`/api/orders/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
         })
             .then(response => response.json())
             .then(data => {
                 updateOrderTable(data.orders);
-                updateOrderPagination(data.total, offset, limit);
+                updateOrderPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function loadRevenue() {
+    function loadRevenue(timezone) {
         var startDate = document.getElementById('revenue-start-date').value;
         var endDate = document.getElementById('revenue-end-date').value;
-        fetch(`/api/orders/revenue?start_date=${startDate}&end_date=${endDate}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': getAuthToken()
-            }
+        fetch(`/api/orders/revenue?start_date=${startDate}&end_date=${endDate}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
         })
             .then(response => response.json())
             .then(data => {
@@ -281,7 +291,7 @@
         });
     }
 
-    function updateProductPagination(total, offset, limit) {
+    function updateProductPagination(total, offset, limit, timezone) {
         const paginationContainer = document.getElementById('product-pagination');
         paginationContainer.innerHTML = '';
 
@@ -293,13 +303,13 @@
             pageLink.innerText = i + 1;
             pageLink.addEventListener('click', (event) => {
                 event.preventDefault();
-                loadProducts(i * limit, limit);
+                loadProducts(i * limit, limit, timezone);
             });
             paginationContainer.appendChild(pageLink);
         }
     }
 
-    function updateOrderPagination(total, offset, limit) {
+    function updateOrderPagination(total, offset, limit, timezone) {
         const paginationContainer = document.getElementById('order-pagination');
         paginationContainer.innerHTML = '';
 
@@ -311,7 +321,7 @@
             pageLink.innerText = i + 1;
             pageLink.addEventListener('click', (event) => {
                 event.preventDefault();
-                loadOrders(i * limit, limit);
+                loadOrders(i * limit, limit, timezone);
             });
             paginationContainer.appendChild(pageLink);
         }
