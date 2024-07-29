@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,6 +56,22 @@
         }
         .pagination a:hover {
             background-color: #ddd;
+        }
+        .revenue-container {
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: #fff;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
         }
     </style>
 </head>
@@ -118,12 +134,28 @@
         </table>
         <div class="pagination" id="order-pagination"></div>
     </div>
+
+    <div class="revenue-container">
+        <h2>Revenue</h2>
+        <div class="date-filter">
+            <label for="revenue-start-date">Start Date:</label>
+            <input type="date" id="revenue-start-date">
+            <label for="revenue-end-date">End Date:</label>
+            <input type="date" id="revenue-end-date">
+        </div>
+        <p id="revenue-amount"></p>
+    </div>
+</div>
+
+<div class="footer">
+    &copy; 2024 Admin Dashboard. All rights reserved.
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         loadProducts(0, 10);
         loadOrders(0, 10);
+        loadRevenue();
     });
 
     document.getElementById('product-search').addEventListener('click', function(event) {
@@ -140,8 +172,20 @@
         searchOrders(keyword, startDate, endDate, 0, 10);
     });
 
+    document.getElementById('revenue-start-date').addEventListener('change', loadRevenue);
+    document.getElementById('revenue-end-date').addEventListener('change', loadRevenue);
+
+    function getAuthToken() {
+        return localStorage.getItem('Authorization');
+    }
+
     function loadProducts(offset, limit) {
-        fetch(`/search/products?offset=${offset}&limit=${limit}`)
+        fetch(`/api/admin/products/search?offset=${offset}&limit=${limit}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': getAuthToken()
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 updateProductTable(data.products);
@@ -150,7 +194,12 @@
     }
 
     function loadOrders(offset, limit) {
-        fetch(`/search/orders?offset=${offset}&limit=${limit}`)
+        fetch(`/api/orders/search?offset=${offset}&limit=${limit}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': getAuthToken()
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 updateOrderTable(data.orders);
@@ -159,7 +208,12 @@
     }
 
     function searchProducts(keyword, startDate, endDate, offset, limit) {
-        fetch(`/search/products?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`)
+        fetch(`/api/admin/products/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': getAuthToken()
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 updateProductTable(data.products);
@@ -168,11 +222,31 @@
     }
 
     function searchOrders(keyword, startDate, endDate, offset, limit) {
-        fetch(`/search/orders?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`)
+        fetch(`/api/orders/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': getAuthToken()
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 updateOrderTable(data.orders);
                 updateOrderPagination(data.total, offset, limit);
+            });
+    }
+
+    function loadRevenue() {
+        var startDate = document.getElementById('revenue-start-date').value;
+        var endDate = document.getElementById('revenue-end-date').value;
+        fetch(`/api/orders/revenue?start_date=${startDate}&end_date=${endDate}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': getAuthToken()
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('revenue-amount').textContent = `Revenue: $${data.revenue}`;
             });
     }
 
