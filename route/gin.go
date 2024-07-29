@@ -3,6 +3,7 @@ package route
 import (
 	"github.com/gin-gonic/gin"
 	"shopping-cart/handler/admin"
+	"shopping-cart/handler/admin/render"
 	"shopping-cart/handler/order"
 	"shopping-cart/handler/product"
 	"shopping-cart/handler/user"
@@ -22,7 +23,7 @@ func GinRouter() (server *gin.Engine) {
 	server.Use(gin.Logger())
 	server.LoadHTMLGlob("frontend/*")
 
-	admin.RegisterHomeRoutes(server)
+	render.RegisterHomeRoutes(server)
 
 	api := server.Group("/api")
 
