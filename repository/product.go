@@ -2,7 +2,6 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	"log"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
 	"time"
@@ -17,7 +16,7 @@ type ProductRepository interface {
 	BatchUpdate(products []*database.Product) error
 	FindByIDs(ids []int) ([]*database.Product, error)
 	SoftDelete(product *database.Product) error
-	SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error)
+	SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.ProductWithTime, int64, error)
 }
 
 type productRepository struct {
@@ -90,11 +89,11 @@ func (r *productRepository) FindByIDs(ids []int) ([]*database.Product, error) {
 	return products, nil
 }
 
-func (r *productRepository) SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error) {
-	var products []database.Product
+func (r *productRepository) SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.ProductWithTime, int64, error) {
+	var products []database.ProductWithTime
 	var count int64
-	log.Printf("keyword: %s, startDate: %s, endDate: %s, offset: %d, limit: %d", keyword, startDate, endDate, offset, limit)
-	query := r.db.Model(&database.Product{})
+
+	query := r.db.Model(&database.Product{}).Select("products.*, products.created_at, products.updated_at")
 
 	if keyword != "" {
 		query = query.Where("name LIKE ? OR description LIKE ? OR supplier LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")

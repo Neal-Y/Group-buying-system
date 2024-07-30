@@ -16,7 +16,7 @@ type OrderRepository interface {
 	BeginTransaction() *gorm.DB
 	FindPendingOrdersByUserIDTx(tx *gorm.DB, userID int) ([]database.Order, error)
 	FindByUserIDAndProductID(userID, productID int) ([]database.Order, error)
-	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error)
+	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.OrderWitheTime, int64, error)
 	GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error)
 }
 
@@ -78,11 +78,12 @@ func (r *orderRepository) FindByUserIDAndProductID(userID int, productID int) ([
 	return orders, nil
 }
 
-func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error) {
-	var orders []database.Order
+func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.OrderWitheTime, int64, error) {
+	var orders []database.OrderWitheTime
 	var count int64
 
-	query := r.db.Model(&database.Order{}).Joins("JOIN users ON users.id = orders.user_id")
+	query := r.db.Model(&database.Order{}).Select("orders.*, users.display_name").
+		Joins("JOIN users ON users.id = orders.user_id")
 
 	if keyword != "" {
 		query = query.Where("orders.note LIKE ? OR orders.status LIKE ? OR users.display_name LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
