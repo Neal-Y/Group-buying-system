@@ -97,9 +97,16 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Description</th>
+                <th>Picture</th>
                 <th>Price</th>
+                <th>Stock</th>
+                <th>Description</th>
+                <th>Expiration Time</th>
+                <th>Is Sold Out</th>
+                <th>Sold Out At</th>
+                <th>Supplier</th>
                 <th>Created At</th>
+                <th>Updated At</th>
             </tr>
             </thead>
             <tbody id="product-table-body"></tbody>
@@ -128,6 +135,7 @@
                 <th>Note</th>
                 <th>Status</th>
                 <th>Created At</th>
+                <th>Updated At</th>
             </tr>
             </thead>
             <tbody id="order-table-body"></tbody>
@@ -200,6 +208,11 @@
         return { 'Authorization': token };
     }
 
+    function formatDateTimeToLocale(dateTimeString) {
+        var date = new Date(dateTimeString);
+        return date.toLocaleString();
+    }
+
     function loadProducts(offset, limit, timezone) {
         var startDate = document.getElementById('product-start-date').value;
         var endDate = document.getElementById('product-end-date').value;
@@ -267,9 +280,16 @@
             const row = `<tr>
                 <td>${product.id}</td>
                 <td>${product.name}</td>
-                <td>${product.description}</td>
+                <td>${product.picture}</td>
                 <td>${product.price}</td>
-                <td>${product.created_at}</td>
+                <td>${product.stock}</td>
+                <td>${product.description}</td>
+                <td>${formatDateTimeToLocale(product.expiration_time)}</td>
+                <td>${product.is_sold_out}</td>
+                <td>${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}</td>
+                <td>${product.supplier}</td>
+                <td>${formatDateTimeToLocale(product.created_at)}</td>
+                <td>${formatDateTimeToLocale(product.updated_at)}</td>
             </tr>`;
             table.innerHTML += row;
         });
@@ -285,7 +305,8 @@
                 <td>${order.total_price}</td>
                 <td>${order.note}</td>
                 <td>${order.status}</td>
-                <td>${order.created_at}</td>
+                <td>${formatDateTimeToLocale(order.created_at)}</td>
+                <td>${formatDateTimeToLocale(order.updated_at)}</td>
             </tr>`;
             table.innerHTML += row;
         });
