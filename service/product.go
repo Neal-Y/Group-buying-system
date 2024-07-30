@@ -16,7 +16,7 @@ type ProductService interface {
 	CreateProduct(productDto *product.Payload) (*product.CreatedResponse, error)
 	DeleteProduct(id int) error
 	FindByID(id int) (*database.Product, error)
-	SearchProducts(params util.SearchContainer) ([]database.Product, int64, error)
+	SearchProducts(params util.SearchContainer) ([]database.ProductWithTime, int64, error)
 }
 
 type productService struct {
@@ -104,6 +104,6 @@ func (s *productService) FindByID(id int) (*database.Product, error) {
 	return s.productRepo.FindByID(id)
 }
 
-func (s *productService) SearchProducts(params util.SearchContainer) ([]database.Product, int64, error) {
+func (s *productService) SearchProducts(params util.SearchContainer) ([]database.ProductWithTime, int64, error) {
 	return s.productRepo.SearchProducts(params.Keyword, params.StartDate, params.EndDate, params.Offset, params.Limit)
 }
