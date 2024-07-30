@@ -20,7 +20,7 @@ func ConvertDateRangeToUTC(startDateStr, endDateStr, timezone string) (time.Time
 	}
 
 	startDateUTC := startDate.UTC()
-	endDateUTC := endDate.Add(24 * time.Hour).UTC().Add(-1 * time.Nanosecond)
+	endDateUTC := endDate.Add(23*time.Hour + 59*time.Minute + 59*time.Second).UTC()
 
 	return startDateUTC, endDateUTC, nil
 }
