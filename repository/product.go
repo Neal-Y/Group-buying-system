@@ -17,6 +17,7 @@ type ProductRepository interface {
 	FindByIDs(ids []int) ([]*database.Product, error)
 	SoftDelete(product *database.Product) error
 	SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.ProductWithTime, int64, error)
+	FindByIDAdmin(id int) (*database.ProductWithTime, error)
 }
 
 type productRepository struct {
@@ -112,4 +113,13 @@ func (r *productRepository) SearchProducts(keyword string, startDate, endDate ti
 		return nil, 0, err
 	}
 	return products, count, nil
+}
+
+func (r *productRepository) FindByIDAdmin(id int) (*database.ProductWithTime, error) {
+	var product database.ProductWithTime
+	err := r.db.Where("id = ?", id).First(&product).Error
+	if err != nil {
+		return nil, err
+	}
+	return &product, nil
 }
