@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,30 +12,34 @@
             margin: 0;
             padding: 0;
         }
-        .container {
-            width: 80%;
-            margin: 20px auto;
-        }
         h1 {
             text-align: center;
             color: #333;
         }
-        .table-container {
-            margin-top: 20px;
+        .container {
+            width: 95%;
+            margin: 20px auto;
+            overflow-x: auto; /* 允许水平滚动 */
             background: #fff;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
+        .table-container {
+            overflow-x: auto; /* 允许表格水平滚动 */
+        }
         table {
             width: 100%;
+            table-layout: auto; /* 自动布局 */
             border-collapse: collapse;
-            margin-bottom: 20px;
         }
         table th, table td {
-            padding: 10px;
+            padding: 8px;
             text-align: left;
             border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* 超出内容显示省略号 */
         }
         table th {
             background-color: #f2f2f2;
@@ -64,15 +69,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            background-color: #333;
-            color: #fff;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
     </style>
 </head>
 <body>
@@ -82,9 +78,10 @@
 
     <div class="table-container">
         <h2>Products</h2>
+        <button onclick="showProductForm()" class="btn btn-primary mb-3">Add Product</button>
         <div class="search-bar">
             <input type="text" id="product-keyword" placeholder="Search products...">
-            <button id="product-search">Search</button>
+            <button id="product-search" class="btn btn-secondary">Search</button>
         </div>
         <div class="date-filter">
             <label for="product-start-date">Start Date:</label>
@@ -92,7 +89,7 @@
             <label for="product-end-date">End Date:</label>
             <input type="date" id="product-end-date">
         </div>
-        <table>
+        <table class="table table-bordered">
             <thead>
             <tr>
                 <th>ID</th>
@@ -107,6 +104,7 @@
                 <th>Supplier</th>
                 <th>Created At</th>
                 <th>Updated At</th>
+                <th>Actions</th>
             </tr>
             </thead>
             <tbody id="product-table-body"></tbody>
@@ -116,9 +114,10 @@
 
     <div class="table-container">
         <h2>Orders</h2>
+        <button onclick="showOrderForm()" class="btn btn-primary mb-3">Add Order</button>
         <div class="search-bar">
             <input type="text" id="order-keyword" placeholder="Search orders...">
-            <button id="order-search">Search</button>
+            <button id="order-search" class="btn btn-secondary">Search</button>
         </div>
         <div class="date-filter">
             <label for="order-start-date">Start Date:</label>
@@ -126,7 +125,7 @@
             <label for="order-end-date">End Date:</label>
             <input type="date" id="order-end-date">
         </div>
-        <table>
+        <table class="table table-bordered">
             <thead>
             <tr>
                 <th>ID</th>
@@ -136,6 +135,7 @@
                 <th>Status</th>
                 <th>Created At</th>
                 <th>Updated At</th>
+                <th>Actions</th>
             </tr>
             </thead>
             <tbody id="order-table-body"></tbody>
@@ -155,10 +155,100 @@
     </div>
 </div>
 
-<div class="footer">
-    &copy; 2024 Admin Dashboard. All rights reserved.
+<!-- Add Product Modal -->
+<div class="modal" id="productFormModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productFormTitle">Add Product</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="editProductId">
+                    <div class="form-group">
+                        <label for="editProductName">Name</label>
+                        <input type="text" class="form-control" id="editProductName" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductPicture">Picture</label>
+                        <input type="text" class="form-control" id="editProductPicture" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductPrice">Price</label>
+                        <input type="number" class="form-control" id="editProductPrice" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductStock">Stock</label>
+                        <input type="number" class="form-control" id="editProductStock" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductDescription">Description</label>
+                        <textarea class="form-control" id="editProductDescription" required></textarea>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductExpirationTime">Expiration Time</label>
+                        <input type="datetime-local" class="form-control" id="editProductExpirationTime" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductSupplier">Supplier</label>
+                        <input type="text" class="form-control" id="editProductSupplier" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitEditProductForm()">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Add Order Modal -->
+<div class="modal" id="orderFormModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderFormTitle">Add Order</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="orderForm">
+                    <input type="hidden" id="editOrderId">
+                    <div class="form-group">
+                        <label for="editOrderUserId">User ID</label>
+                        <input type="number" class="form-control" id="editOrderUserId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderTotalPrice">Total Price</label>
+                        <input type="number" class="form-control" id="editOrderTotalPrice" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderNote">Note</label>
+                        <textarea class="form-control" id="editOrderNote" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderStatus">Status</label>
+                        <input type="text" class="form-control" id="editOrderStatus" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitEditOrderForm()">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var today = new Date();
@@ -229,7 +319,7 @@
     function loadOrders(offset, limit, timezone) {
         var startDate = document.getElementById('order-start-date').value;
         var endDate = document.getElementById('order-end-date').value;
-        fetch(`/api/orders/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+        fetch(`/api/admin/orders/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
@@ -251,7 +341,7 @@
     }
 
     function searchOrders(keyword, startDate, endDate, offset, limit, timezone) {
-        fetch(`/api/orders/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+        fetch(`/api/admin/orders/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
@@ -264,7 +354,7 @@
     function loadRevenue(timezone) {
         var startDate = document.getElementById('revenue-start-date').value;
         var endDate = document.getElementById('revenue-end-date').value;
-        fetch(`/api/orders/revenue?start_date=${startDate}&end_date=${endDate}&timezone=${timezone}`, {
+        fetch(`/api/admin/orders/revenue?start_date=${startDate}&end_date=${endDate}&timezone=${timezone}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
@@ -279,20 +369,25 @@
         products.forEach(product => {
             const row = `<tr>
                 <td>${product.id}</td>
-                <td>${product.name}</td>
-                <td>${product.picture}</td>
-                <td>${product.price}</td>
-                <td>${product.stock}</td>
-                <td>${product.description}</td>
-                <td>${formatDateTimeToLocale(product.expiration_time)}</td>
-                <td>${product.is_sold_out}</td>
-                <td>${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}</td>
-                <td>${product.supplier}</td>
-                <td>${formatDateTimeToLocale(product.created_at)}</td>
-                <td>${formatDateTimeToLocale(product.updated_at)}</td>
+                <td data-toggle="tooltip" title="${product.name}">${product.name}</td>
+                <td data-toggle="tooltip" title="${product.picture}">${product.picture}</td>
+                <td data-toggle="tooltip" title="${product.price}">${product.price}</td>
+                <td data-toggle="tooltip" title="${product.stock}">${product.stock}</td>
+                <td data-toggle="tooltip" title="${product.description}">${product.description}</td>
+                <td data-toggle="tooltip" title="${product.expiration_time}">${formatDateTimeToLocale(product.expiration_time)}</td>
+                <td data-toggle="tooltip" title="${product.is_sold_out}">${product.is_sold_out}</td>
+                <td data-toggle="tooltip" title="${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}">${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}</td>
+                <td data-toggle="tooltip" title="${product.supplier}">${product.supplier}</td>
+                <td data-toggle="tooltip" title="${product.created_at}">${formatDateTimeToLocale(product.created_at)}</td>
+                <td data-toggle="tooltip" title="${product.updated_at}">${formatDateTimeToLocale(product.updated_at)}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditProductForm(${product.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
+                </td>
             </tr>`;
             table.innerHTML += row;
         });
+        $('[data-toggle="tooltip"]').tooltip();
     }
 
     function updateOrderTable(orders) {
@@ -307,6 +402,10 @@
                 <td>${order.status}</td>
                 <td>${formatDateTimeToLocale(order.created_at)}</td>
                 <td>${formatDateTimeToLocale(order.updated_at)}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditOrderForm(${order.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id})">Delete</button>
+                </td>
             </tr>`;
             table.innerHTML += row;
         });
@@ -345,6 +444,181 @@
                 loadOrders(i * limit, limit, timezone);
             });
             paginationContainer.appendChild(pageLink);
+        }
+    }
+
+    function showProductForm() {
+        document.getElementById('editProductId').value = '';
+        document.getElementById('productForm').reset();
+        document.getElementById('productFormTitle').innerText = 'Add Product';
+        $('#productFormModal').modal('show');
+    }
+
+    function showEditProductForm(productId) {
+        // Load product data and show form to edit the product
+        fetch(`/api/admin/products/${productId}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                const product = data.product; // 处理外层包裹问题
+
+                // Convert UTC time to local time
+                const expirationTime = new Date(data.product.expiration_time);
+                const localExpirationTime = new Date(expirationTime.getTime() - (expirationTime.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+
+                document.getElementById('editProductId').value = product.id;
+                document.getElementById('editProductName').value = product.name;
+                document.getElementById('editProductPicture').value = product.picture;
+                document.getElementById('editProductPrice').value = product.price;
+                document.getElementById('editProductStock').value = product.stock;
+                document.getElementById('editProductDescription').value = product.description;
+                document.getElementById('editProductExpirationTime').value = localExpirationTime
+                document.getElementById('editProductSupplier').value = product.supplier;
+                document.getElementById('productFormTitle').innerText = 'Edit Product';
+                $('#productFormModal').modal('show');
+            });
+    }
+
+    function submitEditProductForm() {
+        const form = document.getElementById('productForm');
+        const isValid = form.checkValidity();
+
+        if (!isValid) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const productId = document.getElementById('editProductId').value;
+        const productData = {
+            name: document.getElementById('editProductName').value,
+            picture: document.getElementById('editProductPicture').value,
+            price: parseFloat(document.getElementById('editProductPrice').value),
+            stock: parseInt(document.getElementById('editProductStock').value),
+            description: document.getElementById('editProductDescription').value,
+            expiration_time: new Date(document.getElementById('editProductExpirationTime').value).toISOString(),
+            supplier: document.getElementById('editProductSupplier').value,
+        };
+
+        let url = '/api/admin/products';
+        let method = 'POST';
+
+        if (productId) {
+            // Update existing product
+            url += `/${productId}`;
+            method = 'PATCH';
+        }
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders()
+            },
+            body: JSON.stringify(productData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(() => {
+                $('#productFormModal').modal('hide');
+                loadProducts(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save product.');
+            });
+    }
+
+    function deleteProduct(productId) {
+        if (confirm('Are you sure you want to delete this product?')) {
+            fetch(`/api/admin/products/${productId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            })
+                .then(() => {
+                    loadProducts(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
+        }
+    }
+
+    function showOrderForm() {
+        document.getElementById('editOrderId').value = '';
+        document.getElementById('orderForm').reset();
+        document.getElementById('orderFormTitle').innerText = 'Add Order';
+        $('#orderFormModal').modal('show');
+    }
+
+    function showEditOrderForm(orderId) {
+        // Load order data and show form to edit the order
+        fetch(`/api/admin/orders/${orderId}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                const order = data.order
+                document.getElementById('editOrderId').value = order.id;
+                document.getElementById('editOrderUserId').value = order.user_id;
+                document.getElementById('editOrderTotalPrice').value = order.total_price;
+                document.getElementById('editOrderNote').value = order.note;
+                document.getElementById('editOrderStatus').value = order.status;
+                document.getElementById('orderFormTitle').innerText = 'Edit Order';
+                $('#orderFormModal').modal('show');
+            });
+    }
+
+    function submitEditOrderForm() {
+        const orderId = document.getElementById('editOrderId').value;
+        const orderData = {
+            note: document.getElementById('editOrderNote').value,
+            status: document.getElementById('editOrderStatus').value,
+        };
+
+        if (orderId) {
+            // Update existing order
+            fetch(`/api/admin/orders/${orderId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify(orderData)
+            })
+                .then(response => response.json())
+                .then(() => {
+                    $('#orderFormModal').modal('hide');
+                    loadOrders(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
+        } else {
+            // Create new order
+            fetch(`/api/admin/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify(orderData)
+            })
+                .then(response => response.json())
+                .then(() => {
+                    $('#orderFormModal').modal('hide');
+                    loadOrders(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
+        }
+    }
+
+    function deleteOrder(orderId) {
+        if (confirm('Are you sure you want to delete this order?')) {
+            fetch(`/api/admin/orders/${orderId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            })
+                .then(() => {
+                    loadOrders(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
         }
     }
 </script>
