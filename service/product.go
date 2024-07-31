@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"log"
 	"shopping-cart/builder"
 	"shopping-cart/config"
 	"shopping-cart/model/database"
@@ -17,6 +18,7 @@ type ProductService interface {
 	DeleteProduct(id int) error
 	FindByID(id int) (*database.Product, error)
 	SearchProducts(params util.SearchContainer) ([]database.ProductWithTime, int64, error)
+	GetByID(id int) (*database.ProductWithTime, error)
 }
 
 type productService struct {
@@ -55,6 +57,7 @@ func (s *productService) UpdateProduct(id int, productDto *product.Update) error
 		SetSupplier(productDto.Supplier).
 		Build()
 
+	log.Printf("product: %v", product)
 	return s.productRepo.Update(product)
 }
 
@@ -106,4 +109,8 @@ func (s *productService) FindByID(id int) (*database.Product, error) {
 
 func (s *productService) SearchProducts(params util.SearchContainer) ([]database.ProductWithTime, int64, error) {
 	return s.productRepo.SearchProducts(params.Keyword, params.StartDate, params.EndDate, params.Offset, params.Limit)
+}
+
+func (s *productService) GetByID(id int) (*database.ProductWithTime, error) {
+	return s.productRepo.FindByIDAdmin(id)
 }
