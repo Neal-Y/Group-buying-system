@@ -35,3 +35,7 @@ type ProductWithTime struct {
 func (Product) TableName() string {
 	return "products"
 }
+
+func (ProductWithTime) TableName() string {
+	return "products"
+}

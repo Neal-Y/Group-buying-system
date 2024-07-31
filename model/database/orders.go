@@ -27,3 +27,7 @@ type OrderWitheTime struct {
 func (Order) TableName() string {
 	return "orders"
 }
+
+func (OrderWitheTime) TableName() string {
+	return "orders"
+}
