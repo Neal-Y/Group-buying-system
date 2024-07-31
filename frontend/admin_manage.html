@@ -32,9 +32,10 @@
             width: 100%;
             table-layout: auto; /* 自动布局 */
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
         table th, table td {
-            padding: 8px;
+            padding: 10px;
             text-align: left;
             border-bottom: 1px solid #ddd;
             white-space: nowrap;
@@ -114,7 +115,6 @@
 
     <div class="table-container">
         <h2>Orders</h2>
-        <button onclick="showOrderForm()" class="btn btn-primary mb-3">Add Order</button>
         <div class="search-bar">
             <input type="text" id="order-keyword" placeholder="Search orders...">
             <button id="order-search" class="btn btn-secondary">Search</button>
@@ -210,12 +210,12 @@
     </div>
 </div>
 
-<!-- Add Order Modal -->
+<!-- Edit Order Modal -->
 <div class="modal" id="orderFormModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="orderFormTitle">Add Order</h5>
+                <h5 class="modal-title" id="orderFormTitle">Edit Order</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -224,20 +224,18 @@
                 <form id="orderForm">
                     <input type="hidden" id="editOrderId">
                     <div class="form-group">
-                        <label for="editOrderUserId">User ID</label>
-                        <input type="number" class="form-control" id="editOrderUserId" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editOrderTotalPrice">Total Price</label>
-                        <input type="number" class="form-control" id="editOrderTotalPrice" required>
-                    </div>
-                    <div class="form-group">
                         <label for="editOrderNote">Note</label>
                         <textarea class="form-control" id="editOrderNote" required></textarea>
+                        <div class="invalid-feedback">This field is required.</div>
                     </div>
                     <div class="form-group">
                         <label for="editOrderStatus">Status</label>
-                        <input type="text" class="form-control" id="editOrderStatus" required>
+                        <select class="form-control" id="editOrderStatus" required>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                        <div class="invalid-feedback">This field is required.</div>
                     </div>
                     <button type="button" class="btn btn-primary" onclick="submitEditOrderForm()">Save</button>
                 </form>
@@ -369,17 +367,17 @@
         products.forEach(product => {
             const row = `<tr>
                 <td>${product.id}</td>
-                <td data-toggle="tooltip" title="${product.name}">${product.name}</td>
-                <td data-toggle="tooltip" title="${product.picture}">${product.picture}</td>
-                <td data-toggle="tooltip" title="${product.price}">${product.price}</td>
-                <td data-toggle="tooltip" title="${product.stock}">${product.stock}</td>
-                <td data-toggle="tooltip" title="${product.description}">${product.description}</td>
-                <td data-toggle="tooltip" title="${product.expiration_time}">${formatDateTimeToLocale(product.expiration_time)}</td>
-                <td data-toggle="tooltip" title="${product.is_sold_out}">${product.is_sold_out}</td>
-                <td data-toggle="tooltip" title="${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}">${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}</td>
-                <td data-toggle="tooltip" title="${product.supplier}">${product.supplier}</td>
-                <td data-toggle="tooltip" title="${product.created_at}">${formatDateTimeToLocale(product.created_at)}</td>
-                <td data-toggle="tooltip" title="${product.updated_at}">${formatDateTimeToLocale(product.updated_at)}</td>
+                <td>${product.name}</td>
+                <td>${product.picture}</td>
+                <td>${product.price}</td>
+                <td>${product.stock}</td>
+                <td>${product.description}</td>
+                <td>${formatDateTimeToLocale(product.expiration_time)}</td>
+                <td>${product.is_sold_out}</td>
+                <td>${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}</td>
+                <td>${product.supplier}</td>
+                <td>${formatDateTimeToLocale(product.created_at)}</td>
+                <td>${formatDateTimeToLocale(product.updated_at)}</td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="showEditProductForm(${product.id})">Edit</button>
                     <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
@@ -387,7 +385,6 @@
             </tr>`;
             table.innerHTML += row;
         });
-        $('[data-toggle="tooltip"]').tooltip();
     }
 
     function updateOrderTable(orders) {
@@ -545,13 +542,6 @@
         }
     }
 
-    function showOrderForm() {
-        document.getElementById('editOrderId').value = '';
-        document.getElementById('orderForm').reset();
-        document.getElementById('orderFormTitle').innerText = 'Add Order';
-        $('#orderFormModal').modal('show');
-    }
-
     function showEditOrderForm(orderId) {
         // Load order data and show form to edit the order
         fetch(`/api/admin/orders/${orderId}`, {
@@ -561,8 +551,6 @@
             .then(data => {
                 const order = data.order
                 document.getElementById('editOrderId').value = order.id;
-                document.getElementById('editOrderUserId').value = order.user_id;
-                document.getElementById('editOrderTotalPrice').value = order.total_price;
                 document.getElementById('editOrderNote').value = order.note;
                 document.getElementById('editOrderStatus').value = order.status;
                 document.getElementById('orderFormTitle').innerText = 'Edit Order';
