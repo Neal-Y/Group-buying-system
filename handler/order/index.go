@@ -31,9 +31,11 @@ func newRoute(h *Order, r *gin.RouterGroup) {
 }
 
 func adminRoute(h *Order, r *gin.RouterGroup) {
-	adminRoute := r.Group("/orders")
+	adminRoute := r.Group("/admin/orders")
 	adminRoute.Use(middleware.JWTAuthMiddleware(constant.AdminType))
 	adminRoute.PATCH("/:id", h.UpdateOrder)
+	adminRoute.DELETE("/:id", h.DeleteOrder)
 	adminRoute.GET("/search", h.SearchOrders)
 	adminRoute.GET("/revenue", h.GetRevenue)
+	adminRoute.GET("/:id", h.GetByID)
 }
