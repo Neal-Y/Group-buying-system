@@ -18,6 +18,7 @@ type OrderRepository interface {
 	FindByUserIDAndProductID(userID, productID int) ([]database.Order, error)
 	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.OrderWitheTime, int64, error)
 	GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error)
+	FindByIDAdmin(id int) (*database.OrderWitheTime, error)
 }
 
 type orderRepository struct {
@@ -118,4 +119,13 @@ func (r *orderRepository) GetRevenueByTimePeriod(startDate, endDate time.Time) (
 		return 0, result.Error
 	}
 	return total, nil
+}
+
+func (r *orderRepository) FindByIDAdmin(id int) (*database.OrderWitheTime, error) {
+	var order database.OrderWitheTime
+	err := r.db.Where("id = ?", id).First(&order).Error
+	if err != nil {
+		return nil, err
+	}
+	return &order, nil
 }
