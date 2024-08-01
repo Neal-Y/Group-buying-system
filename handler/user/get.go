@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shopping-cart/util"
+	"strconv"
 )
 
 func (h *User) GetUser(c *gin.Context) {
@@ -13,7 +14,7 @@ func (h *User) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.GetUserByID(id)
+	user, err := h.userService.GetByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
@@ -22,22 +23,20 @@ func (h *User) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
-func (h *User) GetUsers(c *gin.Context) {
-	users, err := h.userService.GetUsers()
+func (h *User) SearchUsers(c *gin.Context) {
+	params, err := util.SearchParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	isMember, _ := strconv.ParseBool(c.Query("is_member"))
+
+	users, total, err := h.userService.SearchUsers(params, isMember)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"users": users})
-}
-
-func (h *User) ListBlockedUsers(c *gin.Context) {
-	users, err := h.userService.ListBlockedUsers()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"users": users})
+	c.JSON(http.StatusOK, gin.H{"users": users, "total": total})
 }

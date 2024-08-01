@@ -57,8 +57,7 @@ func manageUser(h *User, r *gin.RouterGroup) {
 	adminGroup.Use(middleware.JWTAuthMiddleware(constant.AdminType))
 	adminGroup.POST("", h.CreateUser)
 	adminGroup.GET("/:id", h.GetUser)
-	adminGroup.GET("", h.GetUsers)
-	adminGroup.GET("/including_blocked", h.ListBlockedUsers)
+	adminGroup.GET("/search", h.SearchUsers)
 	adminGroup.PATCH("/:id", h.UpdateUser)
 	adminGroup.DELETE("/:id", h.DeleteUser)
 }
