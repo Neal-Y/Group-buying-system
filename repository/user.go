@@ -11,7 +11,6 @@ import (
 type UserRepository interface {
 	Create(user *database.User) error
 	FindByID(id int) (*database.User, error)
-	FindAll() ([]database.User, error)
 	Update(user *database.User) error
 	FindByLineID(lineID string) (*database.User, error)
 	SoftDeleteTx(tx *gorm.DB, id int) error
@@ -19,6 +18,8 @@ type UserRepository interface {
 	Upsert(user *database.User) error
 	FindByDisplayName(displayName string) (*database.User, error)
 	FindByEmailAndDisplayName(email, displayName string) (*database.User, error)
+	SearchUsers(keyword string, startDate, endDate time.Time, offset int, limit int, isMember bool) ([]database.ExternalUser, int64, error)
+	FindByIDAdmin(id int) (*database.ExternalUser, error)
 }
 
 type userRepository struct {
@@ -42,15 +43,6 @@ func (r *userRepository) FindByID(id int) (*database.User, error) {
 		return nil, err
 	}
 	return &user, nil
-}
-
-func (r *userRepository) FindAll() ([]database.User, error) {
-	var users []database.User
-	err := r.db.Find(&users).Error
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
 }
 
 func (r *userRepository) Update(user *database.User) error {
@@ -120,6 +112,45 @@ func (r *userRepository) FindByDisplayName(displayName string) (*database.User, 
 func (r *userRepository) FindByEmailAndDisplayName(email, displayName string) (*database.User, error) {
 	var user database.User
 	err := r.db.Where("email = ? AND display_name = ? AND line_id = ?", email, displayName, "CreatedByUserEmail").First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *userRepository) SearchUsers(keyword string, startDate, endDate time.Time, offset int, limit int, isMember bool) ([]database.ExternalUser, int64, error) {
+	var users []database.ExternalUser
+	var count int64
+
+	query := r.db.Model(&database.ExternalUser{})
+
+	if keyword != "" {
+		query = query.Where("display_name LIKE ? OR email LIKE ? OR phone LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
+	}
+
+	if !startDate.IsZero() && !endDate.IsZero() {
+		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	if isMember != false {
+		query = query.Where("is_member = ?", true)
+	}
+
+	err := query.Count(&count).
+		Offset(offset).
+		Limit(limit).
+		Find(&users).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, count, nil
+}
+
+func (r *userRepository) FindByIDAdmin(id int) (*database.ExternalUser, error) {
+	var user database.ExternalUser
+	err := r.db.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
