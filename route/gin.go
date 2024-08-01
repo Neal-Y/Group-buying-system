@@ -6,6 +6,7 @@ import (
 	"shopping-cart/handler/order"
 	"shopping-cart/handler/product"
 	"shopping-cart/handler/user"
+	"shopping-cart/handler/user/render"
 	"shopping-cart/repository"
 	"shopping-cart/service"
 	"shopping-cart/util"
@@ -23,6 +24,7 @@ func GinRouter() (server *gin.Engine) {
 	server.LoadHTMLGlob("frontend/*")
 
 	admin.RegisterHomeRoutes(server)
+	render.RegisterUserHomeRoutes(server)
 
 	api := server.Group("/api")
 
