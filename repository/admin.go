@@ -30,7 +30,7 @@ func (r *adminRepository) Create(admin *database.Admin) error {
 
 func (r *adminRepository) FindByUsername(username string) (*database.Admin, error) {
 	var admin database.Admin
-	err := r.db.Where("username = ?", username).First(&admin).Error
+	err := r.db.Where("BINARY username = ?", username).First(&admin).Error
 	if err != nil {
 		return nil, err
 	}

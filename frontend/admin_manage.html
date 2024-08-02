@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,6 +56,22 @@
         }
         .pagination a:hover {
             background-color: #ddd;
+        }
+        .revenue-container {
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: #fff;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
         }
     </style>
 </head>
@@ -118,61 +134,129 @@
         </table>
         <div class="pagination" id="order-pagination"></div>
     </div>
+
+    <div class="revenue-container">
+        <h2>Revenue</h2>
+        <div class="date-filter">
+            <label for="revenue-start-date">Start Date:</label>
+            <input type="date" id="revenue-start-date">
+            <label for="revenue-end-date">End Date:</label>
+            <input type="date" id="revenue-end-date">
+        </div>
+        <p id="revenue-amount"></p>
+    </div>
+</div>
+
+<div class="footer">
+    &copy; 2024 Admin Dashboard. All rights reserved.
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        loadProducts(0, 10);
-        loadOrders(0, 10);
+        var today = new Date();
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        var firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().substr(0, 10);
+        var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().substr(0, 10);
+
+        document.getElementById('product-start-date').value = firstDayOfMonth;
+        document.getElementById('product-end-date').value = lastDayOfMonth;
+        document.getElementById('order-start-date').value = firstDayOfMonth;
+        document.getElementById('order-end-date').value = lastDayOfMonth;
+        document.getElementById('revenue-start-date').value = firstDayOfMonth;
+        document.getElementById('revenue-end-date').value = lastDayOfMonth;
+
+        loadProducts(0, 10, timezone);
+        loadOrders(0, 10, timezone);
+        loadRevenue(timezone);
     });
 
     document.getElementById('product-search').addEventListener('click', function(event) {
         var keyword = document.getElementById('product-keyword').value;
         var startDate = document.getElementById('product-start-date').value;
         var endDate = document.getElementById('product-end-date').value;
-        searchProducts(keyword, startDate, endDate, 0, 10);
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        searchProducts(keyword, startDate, endDate, 0, 10, timezone);
     });
 
     document.getElementById('order-search').addEventListener('click', function(event) {
         var keyword = document.getElementById('order-keyword').value;
         var startDate = document.getElementById('order-start-date').value;
         var endDate = document.getElementById('order-end-date').value;
-        searchOrders(keyword, startDate, endDate, 0, 10);
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        searchOrders(keyword, startDate, endDate, 0, 10, timezone);
     });
 
-    function loadProducts(offset, limit) {
-        fetch(`/search/products?offset=${offset}&limit=${limit}`)
+    document.getElementById('revenue-start-date').addEventListener('change', function() {
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        loadRevenue(timezone);
+    });
+    document.getElementById('revenue-end-date').addEventListener('change', function() {
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        loadRevenue(timezone);
+    });
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('Authorization');
+        return { 'Authorization': token };
+    }
+
+    function loadProducts(offset, limit, timezone) {
+        var startDate = document.getElementById('product-start-date').value;
+        var endDate = document.getElementById('product-end-date').value;
+        fetch(`/api/admin/products/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
             .then(response => response.json())
             .then(data => {
                 updateProductTable(data.products);
-                updateProductPagination(data.total, offset, limit);
+                updateProductPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function loadOrders(offset, limit) {
-        fetch(`/search/orders?offset=${offset}&limit=${limit}`)
+    function loadOrders(offset, limit, timezone) {
+        var startDate = document.getElementById('order-start-date').value;
+        var endDate = document.getElementById('order-end-date').value;
+        fetch(`/api/orders/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
             .then(response => response.json())
             .then(data => {
                 updateOrderTable(data.orders);
-                updateOrderPagination(data.total, offset, limit);
+                updateOrderPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function searchProducts(keyword, startDate, endDate, offset, limit) {
-        fetch(`/search/products?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`)
+    function searchProducts(keyword, startDate, endDate, offset, limit, timezone) {
+        fetch(`/api/admin/products/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
             .then(response => response.json())
             .then(data => {
                 updateProductTable(data.products);
-                updateProductPagination(data.total, offset, limit);
+                updateProductPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function searchOrders(keyword, startDate, endDate, offset, limit) {
-        fetch(`/search/orders?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`)
+    function searchOrders(keyword, startDate, endDate, offset, limit, timezone) {
+        fetch(`/api/orders/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
             .then(response => response.json())
             .then(data => {
                 updateOrderTable(data.orders);
-                updateOrderPagination(data.total, offset, limit);
+                updateOrderPagination(data.total, offset, limit, timezone);
+            });
+    }
+
+    function loadRevenue(timezone) {
+        var startDate = document.getElementById('revenue-start-date').value;
+        var endDate = document.getElementById('revenue-end-date').value;
+        fetch(`/api/orders/revenue?start_date=${startDate}&end_date=${endDate}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('revenue-amount').textContent = `Revenue: $${data.revenue}`;
             });
     }
 
@@ -207,7 +291,7 @@
         });
     }
 
-    function updateProductPagination(total, offset, limit) {
+    function updateProductPagination(total, offset, limit, timezone) {
         const paginationContainer = document.getElementById('product-pagination');
         paginationContainer.innerHTML = '';
 
@@ -219,13 +303,13 @@
             pageLink.innerText = i + 1;
             pageLink.addEventListener('click', (event) => {
                 event.preventDefault();
-                loadProducts(i * limit, limit);
+                loadProducts(i * limit, limit, timezone);
             });
             paginationContainer.appendChild(pageLink);
         }
     }
 
-    function updateOrderPagination(total, offset, limit) {
+    function updateOrderPagination(total, offset, limit, timezone) {
         const paginationContainer = document.getElementById('order-pagination');
         paginationContainer.innerHTML = '';
 
@@ -237,7 +321,7 @@
             pageLink.innerText = i + 1;
             pageLink.addEventListener('click', (event) => {
                 event.preventDefault();
-                loadOrders(i * limit, limit);
+                loadOrders(i * limit, limit, timezone);
             });
             paginationContainer.appendChild(pageLink);
         }
