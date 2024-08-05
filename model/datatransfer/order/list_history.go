@@ -1,6 +1,6 @@
 package order
 
 type ListHistory struct {
-	DisplayName string `json:"display_name"`
-	ProductID   int    `json:"product_id"`
+	UserID    int `json:"user_id"`
+	ProductID int `json:"product_id"`
 }
