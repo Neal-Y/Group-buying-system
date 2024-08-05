@@ -5,8 +5,9 @@ import (
 	"shopping-cart/handler/admin"
 	"shopping-cart/handler/order"
 	"shopping-cart/handler/product"
+	productRender "shopping-cart/handler/product/render"
 	"shopping-cart/handler/user"
-	"shopping-cart/handler/user/render"
+	userRender "shopping-cart/handler/user/render"
 	"shopping-cart/repository"
 	"shopping-cart/service"
 	"shopping-cart/util"
@@ -24,7 +25,8 @@ func GinRouter() (server *gin.Engine) {
 	server.LoadHTMLGlob("frontend/*")
 
 	admin.RegisterHomeRoutes(server)
-	render.RegisterUserHomeRoutes(server)
+	userRender.RegisterUserHomeRoutes(server)
+	productRender.ProductPage(server)
 
 	api := server.Group("/api")
 
