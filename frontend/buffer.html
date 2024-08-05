@@ -8,13 +8,13 @@
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
-            const displayName = urlParams.get('display_name');
+            const user_id = urlParams.get('user_id');
 
             if (token) {
                 localStorage.setItem('Authorization', token);
-                localStorage.setItem('display_name', displayName);
+                localStorage.setItem('user_id', user_id);
                 setTimeout(function() {
-                    window.location.href = '/api/home';
+                    window.location.href = `/products/${localStorage.getItem('productId')}`;
                 }, 3000);
             } else {
                 console.error('No token found in the URL');
