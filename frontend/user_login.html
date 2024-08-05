@@ -1,108 +1,423 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>鮮醬子用戶登入</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            overflow: hidden;
         }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
+
+        .login-container, .register-container, .forgot-password-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
             text-align: center;
+            position: relative;
+            display: none; /* 隐藏容器，初始只显示登录表单 */
         }
-        .container h2 {
-            margin-bottom: 20px;
-        }
-        .container input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .container button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .container button:hover {
-            background-color: #45a049;
-        }
-        .container a {
-            color: #4CAF50;
-            text-decoration: none;
+
+        .login-container.active, .register-container.active, .forgot-password-container.active {
             display: block;
-            margin: 10px 0;
         }
-        .container .line-login {
+
+        h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .social-login button {
+            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 20px;
-        }
-        .container .line-login img {
-            width: 30px;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: none;
             cursor: pointer;
+            transition: background 0.3s ease;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .social-login button i {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .line-login {
+            background: #00c300;
+            color: #fff;
+        }
+
+        .line-login:hover {
+            background: #009900;
+        }
+
+        .footer {
+            margin-top: 1rem;
+            color: #777;
+        }
+
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: #0056b3;
+        }
+
+        .forgot-password {
+            display: block;
+            margin-bottom: 1rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .forgot-password:hover {
+            color: #0056b3;
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+
+        .input-icon input {
+            padding-left: 40px;
+        }
+
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="login-container active" id="login-container">
     <h2>用戶登入</h2>
-    <form id="loginForm">
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
+    <form id="login-form">
+        <div class="input-icon">
+            <i class="fas fa-user"></i>
+            <label for="username">用戶名稱:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="input-icon">
+            <i class="fas fa-lock"></i>
+            <label for="password">密碼:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <a href="#" class="forgot-password" onclick="showForgotPasswordForm()">忘記密碼?</a>
+        <div class="error-message" id="error-message"></div>
         <button type="submit">登入</button>
     </form>
-    <button onclick="window.location.href='/api/user/register'">註冊</button>
-    <a href="/api/user/get_user_email">忘記密碼？</a>
-    <a href="/api/line/login">使用LINE登入？</a>
+    <div class="social-login">
+        <button class="line-login" id="line-login">
+            <i class="fab fa-line"></i> 使用 LINE 登入
+        </button>
+    </div>
+    <div class="footer">
+        <p>沒有帳號? <a href="#" id="register-link" onclick="showRegisterForm()">立即註冊</a></p>
+    </div>
+</div>
+
+<!-- 注册表单 -->
+<div class="register-container" id="register-container">
+    <h2>用戶註冊</h2>
+    <form id="register-form">
+        <div class="input-icon">
+            <i class="fas fa-user"></i>
+            <label for="register-username">用戶名稱:</label>
+            <input type="text" id="register-username" name="username" required>
+        </div>
+        <div class="input-icon">
+            <i class="fas fa-lock"></i>
+            <label for="register-password">密碼:</label>
+            <input type="password" id="register-password" name="password" required>
+        </div>
+        <div class="input-icon">
+            <i class="fas fa-envelope"></i>
+            <label for="register-email">電子郵件:</label>
+            <input type="email" id="register-email" name="email" required>
+        </div>
+        <div class="input-icon">
+            <i class="fas fa-phone"></i>
+            <label for="register-phone">電話號碼:</label>
+            <input type="text" id="register-phone" name="phone">
+        </div>
+        <div class="error-message" id="register-error-message"></div>
+        <button type="submit">註冊</button>
+    </form>
+</div>
+
+<!-- 忘记密码表单 -->
+<div class="forgot-password-container" id="forgot-password-modal">
+    <h2>忘记密码</h2>
+    <form id="forgot-password-form">
+        <label for="forgot-username">用戶名稱:</label>
+        <input type="text" id="forgot-username" name="username" required>
+        <div class="error-message" id="forgot-error-message"></div>
+        <button type="submit">发送</button>
+    </form>
+    <div class="confirm-email" id="confirm-email" style="display: none;">
+        <p>请确认您的电子邮件: <span id="confirm-email-address"></span></p>
+        <button onclick="sendVerificationCode()">发送验证码</button>
+    </div>
+    <div class="reset-password" id="reset-password" style="display: none;">
+        <form id="reset-password-form">
+            <label for="verification-code">验证码:</label>
+            <input type="text" id="verification-code" name="verification_code" required>
+            <label for="new-password">新密码:</label>
+            <input type="password" id="new-password" name="new_password" required>
+            <label for="confirm-password">确认新密码:</label>
+            <input type="password" id="confirm-password" name="confirm_password" required>
+            <div class="error-message" id="reset-error-message"></div>
+            <button type="submit">更改密码</button>
+        </form>
+    </div>
 </div>
 
 <script>
-    document.getElementById('loginForm').addEventListener('submit', function(event) {
+    // 登入表单提交处理
+    document.getElementById('login-form').addEventListener('submit', function(event) {
         event.preventDefault();
-        const email = document.getElementById('email').value;
+        const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        fetch('/api/user/email/login', {
+
+        fetch('/api/email/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ username, password }) // 使用用户名进行登录
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = '/api/home';
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
                 } else {
-                    alert('Login failed');
+                    throw new Error('登入失敗，請檢查您的憑證');
                 }
             })
-            .catch((error) => {
-                console.error('Error:', error);
+            .then(data => {
+                localStorage.setItem('Authorization', data.token);
+                localStorage.setItem('user_id', data.user_id);
+                window.location.href = `/products/${localStorage.getItem('productId')}`;
+            })
+            .catch(error => {
+                console.error('登入失敗:', error);
+                document.getElementById('error-message').textContent = error.message;
             });
+    });
+
+    // 注册表单显示
+    function showRegisterForm() {
+        document.getElementById('login-container').classList.remove('active');
+        document.getElementById('forgot-password-modal').classList.remove('active');
+        document.getElementById('register-container').classList.add('active');
+    }
+
+    // 注册表单提交处理
+    document.getElementById('register-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const username = document.getElementById('register-username').value;
+        const password = document.getElementById('register-password').value;
+        const email = document.getElementById('register-email').value;
+        const phone = document.getElementById('register-phone').value;
+
+        const registerData = {
+            username: username,
+            password: password,
+            email: email,
+            phone: phone
+        };
+
+        fetch('/api/email/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(registerData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('註冊成功，請登入');
+                    window.location.href = '/users/login'; // 注册成功后跳转到登录页面
+                } else {
+                    throw new Error('註冊失敗，請檢查輸入資訊');
+                }
+            })
+            .catch(error => {
+                console.error('註冊失敗:', error);
+                document.getElementById('register-error-message').textContent = error.message;
+            });
+    });
+
+    // 忘记密码表单显示
+    function showForgotPasswordForm() {
+        document.getElementById('login-container').classList.remove('active');
+        document.getElementById('register-container').classList.remove('active');
+        document.getElementById('forgot-password-modal').classList.add('active');
+    }
+
+    // 忘记密码表单提交处理
+    document.getElementById('forgot-password-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const username = document.getElementById('forgot-username').value;
+        console.log('username:', username);
+        try {
+            const response = await fetch('/api/user/get_email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                document.getElementById('confirm-email-address').textContent = result.email;
+                document.getElementById('confirm-email').style.display = 'block';
+            } else {
+                document.getElementById('forgot-error-message').textContent = '获取电子邮件失败: ' + result.error;
+            }
+        } catch (error) {
+            document.getElementById('forgot-error-message').textContent = '获取电子邮件失败: ' + error.message;
+        }
+    });
+
+    async function sendVerificationCode() {
+        const email = document.getElementById('confirm-email-address').textContent;
+        try {
+            const response = await fetch('/api/user/request_password_reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            });
+
+            if (response.ok) {
+                document.getElementById('reset-password').style.display = 'block';
+                document.getElementById('confirm-email').style.display = 'none';
+            } else {
+                document.getElementById('forgot-error-message').textContent = '发送验证码失败';
+            }
+        } catch (error) {
+            document.getElementById('forgot-error-message').textContent = '发送验证码失败';
+        }
+    }
+
+    document.getElementById('reset-password-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const newPassword = formData.get('new_password');
+        const confirmPassword = formData.get('confirm_password');
+
+        if (newPassword !== confirmPassword) {
+            document.getElementById('reset-error-message').textContent = '新密碼與舊密碼不一致';
+            return;
+        }
+
+        const data = {
+            email: document.getElementById('confirm-email-address').textContent,
+            username: document.getElementById('forgot-username').value,
+            code: formData.get('verification_code'),
+            new_password: newPassword
+        };
+
+        try {
+            const response = await fetch('/api/user/reset_password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert('密碼更改成功');
+                window.location.href = '/users/login';
+            } else {
+                document.getElementById('reset-error-message').textContent = '更改密碼失敗: ' + result.error;
+            }
+        } catch (error) {
+            document.getElementById('reset-error-message').textContent = '更改密碼失敗: ' + error.message;
+        }
+    });
+
+    document.getElementById('line-login').addEventListener('click', function() {
+        window.location.href = '/api/line/login';
     });
 </script>
 </body>
 </html>
-
-<!--請幫我生成一個用戶的登入畫面，用於當我的middleware回傳401時，讓他們可以跳轉到的畫面，叫做user_login.html，然後裡面就是簡單的帳號密碼登入還有註冊按鈕以及忘記密碼跟可以選擇line登入的icon，當他按下”登入“是打到後台的/api/user/email/login，當他按下註冊是打到後台的/api/user/regiester，當他按下忘記密碼是打到後台的/api/user/get_user_email，當他按下line 的icon就打到後台的/api/line/login-->
