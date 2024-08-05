@@ -79,11 +79,14 @@ func (s *userService) ExchangeTokenAndGetProfile(code string) (*database.User, e
 		WithLineToken(tokenData.AccessToken).
 		Build()
 
+	temp, _ := s.userRepo.FindByLineID(user.LineID)
+	user.ID = temp.ID
+
 	return user, nil
 }
 
 func (s *userService) Login(req *user.Login) (string, error) {
-	username, password := req.DisplayName, req.Password
+	username, password := req.Username, req.Password
 
 	user, err := s.userRepo.FindByDisplayName(username)
 	if err != nil {
@@ -95,7 +98,7 @@ func (s *userService) Login(req *user.Login) (string, error) {
 		return "", errors.New("invalid username or password")
 	}
 
-	token, err := util.GenerateJWT(constant.AdminType)
+	token, err := util.GenerateJWT(constant.UserType)
 	if err != nil {
 		return "", err
 	}
@@ -104,14 +107,14 @@ func (s *userService) Login(req *user.Login) (string, error) {
 }
 
 func (s *userService) RegisterUser(req *user.Register) error {
+	_, err := s.userRepo.FindByDisplayName(req.DisplayName)
+	if err == nil {
+		return errors.New("username already exists")
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
-	}
-
-	existed, _ := s.userRepo.FindByDisplayName(req.DisplayName)
-	if existed != nil {
-		return errors.New("username already exists")
 	}
 
 	user := builder.NewUserBuilder().
