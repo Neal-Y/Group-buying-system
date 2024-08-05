@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"net/url"
 	"shopping-cart/config"
 	"shopping-cart/constant"
 	"shopping-cart/util"
@@ -43,7 +42,7 @@ func (h *User) LineCallback(c *gin.Context) {
 		return
 	}
 
-	redirectURL := fmt.Sprintf("%s/api/buffer?token=%s&display_name=%s", config.AppConfig.NgrokURL, token, url.QueryEscape(user.DisplayName))
+	redirectURL := fmt.Sprintf("%s/buffer?token=%s&user_id=%d", config.AppConfig.NgrokURL, token, user.ID)
 	c.Redirect(http.StatusFound, redirectURL)
 }
 
