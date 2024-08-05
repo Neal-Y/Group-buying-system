@@ -24,10 +24,10 @@ func NewOrderHandler(r *gin.RouterGroup, orderService service.OrderService) *Ord
 
 func newRoute(h *Order, r *gin.RouterGroup) {
 	orderRoute := r.Group("/orders")
+	orderRoute.POST("/history", h.ListHistoryOrdersByUser)
 	orderRoute.Use(middleware.JWTAuthMiddleware(constant.UserType))
 	orderRoute.POST("", h.CreateOrder)
 	orderRoute.DELETE("/:id", h.DeleteOrder)
-	orderRoute.GET("/history", h.ListHistoryOrdersByUser)
 }
 
 func adminRoute(h *Order, r *gin.RouterGroup) {
