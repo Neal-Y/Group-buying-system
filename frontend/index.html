@@ -1,167 +1,385 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用戶端界面</title>
+    <title>商品详情</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .navbar {
-            background-color: #333;
-            color: #fff;
-            padding: 1rem;
-            text-align: center;
-        }
-        .navbar a {
-            color: #fff;
-            padding: 0 15px;
-            text-decoration: none;
-        }
-        .container {
-            padding: 2rem;
-        }
-        h1 {
-            color: #333;
-        }
-        .product {
-            text-align: center;
-        }
-        .product img {
-            max-width: 100%;
-            height: auto;
-        }
-        .form-group {
-            margin-bottom: 1rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
+
+        .product-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .product-image {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .product-info {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .product-info h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .product-info p {
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .product-info .price {
+            font-size: 20px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .product-info .expiration {
+            font-size: 14px;
+            color: #ff6b6b;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
         .form-group label {
-            margin-right: 1rem;
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
         }
-        .form-group input {
-            width: 50px;
-            text-align: center;
-            margin-right: 1rem;
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
         }
-        .form-group button {
-            padding: 0.5rem 1rem;
-            background-color: #333;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 0 0.5rem;
+
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #007bff;
+            outline: none;
         }
-        .form-group button:hover {
-            background-color: #555;
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
         }
-        .actions {
+
+        .quantity-group {
             display: flex;
-            justify-content: center;
-            margin-top: 2rem;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
-        .actions button {
-            padding: 0.5rem 2rem;
-            margin: 0 1rem;
+
+        .quantity-group label {
+            margin-bottom: 0;
+            color: #555;
         }
-        .alert {
-            display: none;
-            color: red;
+
+        .quantity-group input {
+            width: 60px;
             text-align: center;
-            margin-top: 1rem;
+        }
+
+        .order-button {
+            background: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 16px;
+        }
+
+        .order-button:hover {
+            background: #218838;
+        }
+
+        .history-container {
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        .history-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .history-table th, .history-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .history-table th {
+            background: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .delete-button {
+            background: #dc3545;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .delete-button:hover {
+            background: #c82333;
         }
     </style>
 </head>
 <body>
-<div class="navbar">
-    <a href="#home">首頁</a>
-    <a href="#about">關於我們</a>
-    <a href="#contact">聯絡我們</a>
-</div>
-<div class="container">
-    <h1>產品詳情</h1>
-    <div class="product">
-        <img src="" id="product-image" alt="Product Image">
-        <h2 id="product-name"></h2>
+<div class="product-container">
+    <img id="product-image" class="product-image" src="" alt="Product Image">
+    <div class="product-info">
+        <h1 id="product-name"></h1>
         <p id="product-description"></p>
+        <p class="price" id="product-price"></p>
+        <p class="expiration" id="product-expiration"></p>
     </div>
     <div class="form-group">
-        <label for="quantity">數量</label>
-        <input type="number" id="quantity" value="0">
-        <button onclick="adjustQuantity(-10)">-10</button>
-        <button onclick="adjustQuantity(-5)">-5</button>
-        <button onclick="adjustQuantity(-1)">-1</button>
-        <button onclick="adjustQuantity(1)">+1</button>
-        <button onclick="adjustQuantity(5)">+5</button>
-        <button onclick="adjustQuantity(10)">+10</button>
+        <label for="note">Note:</label>
+        <textarea id="note"></textarea>
     </div>
-    <div class="actions">
-        <button onclick="clearQuantity()">清空</button>
-        <button onclick="confirmOrder()">確認</button>
+    <div class="quantity-group">
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" min="1" value="1">
     </div>
-    <div class="alert" id="alert">確定要清空數量嗎？</div>
+    <button class="order-button" onclick="placeOrder()">下單</button>
+
+    <div class="history-container">
+        <h2>歷史訂單</h2>
+        <table class="history-table" id="history-table">
+            <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Quantity</th>
+                <th>Note</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="history-table-body"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const productId = new URLSearchParams(window.location.search).get('product_id');
-        if (productId) {
-            fetch(`/api/products/${productId}`)
-                .then(response => response.json())
-                .then(product => {
-                    document.getElementById('product-image').src = product.picture;
-                    document.getElementById('product-name').textContent = product.name;
-                    document.getElementById('product-description').textContent = product.description;
-                });
-        }
+        const productId = window.location.pathname.split('/').pop();
+        localStorage.setItem('productId', productId);
+        loadProduct(productId);
+        loadOrderHistory();
     });
 
-    function adjustQuantity(amount) {
-        const quantityInput = document.getElementById('quantity');
-        let quantity = parseInt(quantityInput.value) + amount;
-        if (quantity < 0) quantity = 0;
-        quantityInput.value = quantity;
-    }
-
-    function clearQuantity() {
-        const alertBox = document.getElementById('alert');
-        alertBox.style.display = 'block';
-        setTimeout(() => alertBox.style.display = 'none', 2000);
-        document.getElementById('quantity').value = 0;
-    }
-
-    function confirmOrder() {
-        const productId = new URLSearchParams(window.location.search).get('product_id');
-        const quantity = document.getElementById('quantity').value;
-        const userId = getUserIdFromSession(); // 假設有這個函數可以獲取用戶ID
-
-        if (quantity > 0) {
-            fetch('/api/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ product_id: productId, quantity: quantity, user_id: userId })
+    function loadProduct(productId) {
+        fetch(`/api/products/${productId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('無法加載產品信息');
+                }
             })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Order confirmed:', data);
-                    alert('訂單已提交');
-                });
-        } else {
-            alert('請選擇數量');
-        }
+            .then(data => {
+                const product = data.product;
+                document.getElementById('product-name').textContent = product.name;
+                document.getElementById('product-image').src = product.picture;
+                document.getElementById('product-price').textContent = `價格: $${product.price.toFixed(2)}`;
+                document.getElementById('product-description').textContent = product.description;
+
+                // Convert the UTC time to local time and format it
+                const expirationDate = new Date(product.expiration_time);
+                const localExpirationDate = expirationDate.toLocaleString(); // Full local date and time
+                document.getElementById('product-expiration').textContent = `有效期至: ${localExpirationDate}`;
+
+                if (product.is_sold_out) {
+                    document.querySelector('.order-button').disabled = true;
+                    document.querySelector('.order-button').textContent = '已售完';
+                }
+            })
+            .catch(error => {
+                console.error('無法加載產品信息:', error);
+                alert(error.message);
+            });
     }
 
-    function getUserIdFromSession() {
-        // 模擬獲取用戶ID的函數
-        return 1; // 假設用戶ID為1
+    function placeOrder() {
+        const user_id = localStorage.getItem('user_id');
+        const token = localStorage.getItem('Authorization');
+        const productId = localStorage.getItem('productId');
+        const quantity = document.getElementById('quantity').value;
+        const note = document.getElementById('note').value;
+
+        const orderData = {
+            user_id: parseInt(user_id),
+            note: note,
+            order_details: [{
+                product_id: parseInt(productId),
+                quantity: parseInt(quantity)
+            }]
+        };
+
+        fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // 在请求头中包含Token
+            },
+            body: JSON.stringify(orderData)
+        })
+            .then(response => {
+                console.log('订单创建响应:', response)
+                if (response.status === 302 || response.status === 401 || !response.ok) {
+                    throw new Error('需要登入以繼續');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('订单创建成功:', data);
+                alert('订单创建成功');
+                loadOrderHistory(); // Reload order history after placing an order
+            })
+            .catch(error => {
+                console.error('订单创建失败:', error);
+                if (error.message === '需要登入以繼續') {
+                    alert('需要登入以繼續');
+                    window.location.href = '/users/login'; // Redirect to login page
+                } else {
+                    alert(error.message);
+                }
+            });
+    }
+
+    function loadOrderHistory() {
+        const user_id = localStorage.getItem('user_id');
+        const token = localStorage.getItem('Authorization');
+        const productId = localStorage.getItem('productId');
+
+        fetch('/api/orders/history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ user_id: parseInt(user_id), product_id: parseInt(productId) })
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('無法加載歷史訂單');
+                }
+            })
+            .then(data => {
+                console.log('歷史訂單:', data);
+                updateHistoryTable(data.orders); // Assuming data contains an array of orders
+            })
+            .catch(error => {
+                console.error('無法加載歷史訂單:', error);
+                alert(error.message);
+            });
+    }
+
+    function updateHistoryTable(orders) {
+        const historyTableBody = document.getElementById('history-table-body');
+        historyTableBody.innerHTML = '';
+
+        orders.forEach(order => {
+            if (order.order_details.length > 0) {
+                order.order_details.forEach(detail => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${detail.quantity}</td> <!-- 从 order_details 中获取 quantity -->
+                    <td>${order.note}</td>
+                    <td>
+                        <button class="delete-button" onclick="deleteOrder(${order.id})">刪除</button>
+                    </td>
+                `;
+                    historyTableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${order.id}</td>
+                <td>無訂單詳情</td>
+                <td>${order.note}</td>
+                <td>
+                    <button class="delete-button" onclick="deleteOrder(${order.id})">刪除</button>
+                </td>
+            `;
+                historyTableBody.appendChild(row);
+            }
+        });
+    }
+
+    function deleteOrder(orderId) {
+        const token = localStorage.getItem('Authorization');
+        fetch(`/api/orders/${orderId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('訂單已刪除');
+                    loadOrderHistory(); // Reload order history after deleting an order
+                } else {
+                    throw new Error('無法刪除訂單');
+                }
+            })
+            .catch(error => {
+                console.error('無法刪除訂單:', error);
+                alert(error.message);
+            });
     }
 </script>
 </body>
