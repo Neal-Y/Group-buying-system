@@ -6,26 +6,21 @@ import (
 )
 
 func RegisterUserHomeRoutes(r *gin.Engine) {
-	r.GET("/home", ShowIndex)
+	r.GET("/users/login", ShowLogin)
+	r.GET("/buffer", ShowBuffer)
 }
 
-func ShowIndex(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", nil)
+func ShowLogin(c *gin.Context) {
+	c.HTML(http.StatusOK, "user_login.html", nil)
 }
 
-func Buffer(c *gin.Context) {
-	token := c.Query("token")
-	displayName := c.Query("display_name")
-
-	c.HTML(http.StatusOK, "buffer.html", gin.H{
-		"Authorization": token,
-		"display_name":  displayName,
-	})
+func ShowBuffer(c *gin.Context) {
+	c.HTML(http.StatusOK, "buffer.html", nil)
 }
 
-func Error(c *gin.Context) {
-	message := c.Query("message")
-	c.HTML(http.StatusOK, "error.html", gin.H{
-		"errorMessage": message,
-	})
-}
+//func Error(c *gin.Context) {
+//	message := c.Query("message")
+//	c.HTML(http.StatusOK, "error.html", gin.H{
+//		"errorMessage": message,
+//	})
+//}
