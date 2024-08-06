@@ -94,10 +94,10 @@ func (r *productRepository) SearchProducts(keyword string, startDate, endDate ti
 	var products []database.ProductWithTime
 	var count int64
 
-	query := r.db.Model(&database.Product{}).Select("products.*, products.created_at, products.updated_at")
+	query := r.db.Model(&database.ProductWithTime{})
 
 	if keyword != "" {
-		query = query.Where("name LIKE ? OR description LIKE ? OR supplier LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
+		query = query.Where("products.name LIKE ? OR products.description LIKE ? OR products.supplier LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
 	if !startDate.IsZero() && !endDate.IsZero() {
@@ -117,7 +117,7 @@ func (r *productRepository) SearchProducts(keyword string, startDate, endDate ti
 
 func (r *productRepository) FindByIDAdmin(id int) (*database.ProductWithTime, error) {
 	var product database.ProductWithTime
-	err := r.db.Where("id = ?", id).First(&product).Error
+	err := r.db.Where("products.id = ?", id).First(&product).Error
 	if err != nil {
 		return nil, err
 	}
