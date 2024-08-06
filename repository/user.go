@@ -125,7 +125,7 @@ func (r *userRepository) SearchUsers(keyword string, startDate, endDate time.Tim
 	query := r.db.Model(&database.ExternalUser{})
 
 	if keyword != "" {
-		query = query.Where("display_name LIKE ? OR email LIKE ? OR phone LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
+		query = query.Where("id LIKE ? OR display_name LIKE ? OR email LIKE ? OR phone LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
 	if !startDate.IsZero() && !endDate.IsZero() {
