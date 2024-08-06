@@ -39,3 +39,14 @@ func (h *Order) SearchOrders(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"orders": orders, "total": total})
 }
+
+func (h *Order) GetByID(c *gin.Context) {
+	id, _ := util.GetIDFromPath(c, "id")
+	order, err := h.orderService.GetByID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"order": order})
+}

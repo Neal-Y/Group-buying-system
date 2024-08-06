@@ -2,7 +2,6 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	"log"
 	"shopping-cart/infrastructure"
 	"shopping-cart/model/database"
 	"time"
@@ -17,7 +16,8 @@ type ProductRepository interface {
 	BatchUpdate(products []*database.Product) error
 	FindByIDs(ids []int) ([]*database.Product, error)
 	SoftDelete(product *database.Product) error
-	SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error)
+	SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.ProductWithTime, int64, error)
+	FindByIDAdmin(id int) (*database.ProductWithTime, error)
 }
 
 type productRepository struct {
@@ -90,14 +90,14 @@ func (r *productRepository) FindByIDs(ids []int) ([]*database.Product, error) {
 	return products, nil
 }
 
-func (r *productRepository) SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Product, int64, error) {
-	var products []database.Product
+func (r *productRepository) SearchProducts(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.ProductWithTime, int64, error) {
+	var products []database.ProductWithTime
 	var count int64
-	log.Printf("keyword: %s, startDate: %s, endDate: %s, offset: %d, limit: %d", keyword, startDate, endDate, offset, limit)
-	query := r.db.Model(&database.Product{})
+
+	query := r.db.Model(&database.ProductWithTime{})
 
 	if keyword != "" {
-		query = query.Where("name LIKE ? OR description LIKE ? OR supplier LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
+		query = query.Where("products.name LIKE ? OR products.description LIKE ? OR products.supplier LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
 	if !startDate.IsZero() && !endDate.IsZero() {
@@ -113,4 +113,13 @@ func (r *productRepository) SearchProducts(keyword string, startDate, endDate ti
 		return nil, 0, err
 	}
 	return products, count, nil
+}
+
+func (r *productRepository) FindByIDAdmin(id int) (*database.ProductWithTime, error) {
+	var product database.ProductWithTime
+	err := r.db.Where("products.id = ?", id).First(&product).Error
+	if err != nil {
+		return nil, err
+	}
+	return &product, nil
 }
