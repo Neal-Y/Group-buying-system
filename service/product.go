@@ -2,9 +2,7 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"shopping-cart/builder"
-	"shopping-cart/config"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/product"
 	"shopping-cart/repository"
@@ -13,7 +11,7 @@ import (
 
 type ProductService interface {
 	UpdateProduct(id int, productDto *product.Update) error
-	CreateProduct(productDto *product.Payload) (*product.CreatedResponse, error)
+	CreateProduct(productDto *product.Payload) (*database.Product, error)
 	DeleteProduct(id int) error
 	FindByID(id int) (*database.Product, error)
 	SearchProducts(params util.SearchContainer) ([]database.ProductWithTime, int64, error)
@@ -59,9 +57,8 @@ func (s *productService) UpdateProduct(id int, productDto *product.Update) error
 	return s.productRepo.Update(product)
 }
 
-func (s *productService) CreateProduct(productDto *product.Payload) (*product.CreatedResponse, error) {
+func (s *productService) CreateProduct(productDto *product.Payload) (*database.Product, error) {
 	var check database.Product
-	var result product.CreatedResponse
 
 	err := s.productRepo.FindByName(productDto.Name, &check)
 	if err == nil {
@@ -84,12 +81,7 @@ func (s *productService) CreateProduct(productDto *product.Payload) (*product.Cr
 		return nil, err
 	}
 
-	redirectURL := fmt.Sprintf("%s/api/home?productID=%d", config.AppConfig.NgrokURL, product.ID)
-
-	result.Product = product
-	result.Url = redirectURL
-
-	return &result, nil
+	return product, nil
 }
 
 func (s *productService) DeleteProduct(id int) error {
