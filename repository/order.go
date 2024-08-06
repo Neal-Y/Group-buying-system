@@ -83,7 +83,7 @@ func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.T
 	var orders []database.OrderWitheTime
 	var count int64
 
-	query := r.db.Model(&database.Order{}).Select("orders.*, users.display_name").
+	query := r.db.Model(&database.OrderWitheTime{}).
 		Joins("JOIN users ON users.id = orders.user_id")
 
 	if keyword != "" {
@@ -97,7 +97,6 @@ func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.T
 	err := query.Count(&count).
 		Offset(offset).
 		Limit(limit).
-		Preload("OrderDetails").
 		Preload("User").
 		Find(&orders).Error
 
@@ -123,7 +122,7 @@ func (r *orderRepository) GetRevenueByTimePeriod(startDate, endDate time.Time) (
 
 func (r *orderRepository) FindByIDAdmin(id int) (*database.OrderWitheTime, error) {
 	var order database.OrderWitheTime
-	err := r.db.Where("id = ?", id).First(&order).Error
+	err := r.db.Where("orders.id = ?", id).First(&order).Error
 	if err != nil {
 		return nil, err
 	}

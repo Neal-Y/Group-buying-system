@@ -205,6 +205,13 @@
                     </div>
                     <button type="button" class="btn btn-primary" onclick="submitEditProductForm()">Save</button>
                 </form>
+
+                <!-- URL 部分，仅在编辑产品时显示 -->
+                <div id="generated-url-container" style="display:none; margin-top: 10px;">
+                    <h4>生成的产品链接</h4>
+                    <input type="text" id="generated-url" class="form-control" readonly>
+                    <button onclick="copyGeneratedUrl()" class="btn btn-secondary mt-2">复制链接</button>
+                </div>
             </div>
         </div>
     </div>
@@ -365,26 +372,38 @@
         const table = document.getElementById('product-table-body');
         table.innerHTML = '';
         products.forEach(product => {
+            const productUrl = `https://your-domain.com/api/products/${product.id}`;
             const row = `<tr>
-                <td>${product.id}</td>
-                <td>${product.name}</td>
-                <td>${product.picture}</td>
-                <td>${product.price}</td>
-                <td>${product.stock}</td>
-                <td>${product.description}</td>
-                <td>${formatDateTimeToLocale(product.expiration_time)}</td>
-                <td>${product.is_sold_out}</td>
-                <td>${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}</td>
-                <td>${product.supplier}</td>
-                <td>${formatDateTimeToLocale(product.created_at)}</td>
-                <td>${formatDateTimeToLocale(product.updated_at)}</td>
-                <td>
-                    <button class="btn btn-warning btn-sm" onclick="showEditProductForm(${product.id})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
-                </td>
-            </tr>`;
+            <td>${product.id}</td>
+            <td>${product.name}</td>
+            <td>${product.picture}</td>
+            <td>${product.price}</td>
+            <td>${product.stock}</td>
+            <td>${product.description}</td>
+            <td>${formatDateTimeToLocale(product.expiration_time)}</td>
+            <td>${product.is_sold_out}</td>
+            <td>${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}</td>
+            <td>${product.supplier}</td>
+            <td>${formatDateTimeToLocale(product.created_at)}</td>
+            <td>${formatDateTimeToLocale(product.updated_at)}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="showEditProductForm(${product.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
+                <button class="btn btn-secondary btn-sm" onclick="copyProductUrl('${productUrl}')">复制链接</button>
+            </td>
+        </tr>`;
             table.innerHTML += row;
         });
+    }
+
+    function copyProductUrl(url) {
+        const tempInput = document.createElement('input');
+        document.body.appendChild(tempInput);
+        tempInput.value = url;
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert('产品链接已复制到剪贴板');
     }
 
     function updateOrderTable(orders) {
@@ -448,30 +467,38 @@
         document.getElementById('editProductId').value = '';
         document.getElementById('productForm').reset();
         document.getElementById('productFormTitle').innerText = 'Add Product';
+        document.getElementById('generated-url-container').style.display = 'none';
         $('#productFormModal').modal('show');
     }
 
     function showEditProductForm(productId) {
-        // Load product data and show form to edit the product
+        // 获取产品数据并显示编辑表单
         fetch(`/api/admin/products/${productId}`, {
             headers: getAuthHeaders()
         })
             .then(response => response.json())
             .then(data => {
-                const product = data.product; // 处理外层包裹问题
+                const product = data.product; // 确保获取的对象是正确的
 
-                // Convert UTC time to local time
-                const expirationTime = new Date(data.product.expiration_time);
+                // 将 UTC 时间转换为本地时间
+                const expirationTime = new Date(product.expiration_time);
                 const localExpirationTime = new Date(expirationTime.getTime() - (expirationTime.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
 
+                // 设置表单字段
                 document.getElementById('editProductId').value = product.id;
                 document.getElementById('editProductName').value = product.name;
                 document.getElementById('editProductPicture').value = product.picture;
                 document.getElementById('editProductPrice').value = product.price;
                 document.getElementById('editProductStock').value = product.stock;
                 document.getElementById('editProductDescription').value = product.description;
-                document.getElementById('editProductExpirationTime').value = localExpirationTime
+                document.getElementById('editProductExpirationTime').value = localExpirationTime;
                 document.getElementById('editProductSupplier').value = product.supplier;
+
+                // 生成并显示产品链接
+                const productUrl = `https://your-domain.com/api/products/${product.id}`;
+                document.getElementById('generated-url').value = productUrl; // 显示 URL
+                document.getElementById('generated-url-container').style.display = 'block'; // 显示链接区域
+
                 document.getElementById('productFormTitle').innerText = 'Edit Product';
                 $('#productFormModal').modal('show');
             });
@@ -520,14 +547,27 @@
                 }
                 return response.json();
             })
-            .then(() => {
+            .then(data => {
                 $('#productFormModal').modal('hide');
                 loadProducts(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+                // 生成并显示产品链接
+                const productId = data.product.id;
+                const productUrl = `https://your-domain.com/api/products/${productId}`;
+                document.getElementById('generated-url').value = productUrl;
+                document.getElementById('generated-url-container').style.display = 'block';
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Failed to save product.');
             });
+    }
+
+    function copyGeneratedUrl() {
+        const urlInput = document.getElementById('generated-url');
+        urlInput.select();
+        document.execCommand('copy');
+        alert('链接已复制到剪贴板');
     }
 
     function deleteProduct(productId) {
