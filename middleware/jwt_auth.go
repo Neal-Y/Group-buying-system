@@ -10,9 +10,9 @@ import (
 
 func redirectToLogin(c *gin.Context, expectType string) {
 	if expectType == "admin" {
-		c.Redirect(http.StatusFound, "/admin/login")
-	} else {
-		c.Redirect(http.StatusFound, "/api/line/login")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	} else if expectType == "user" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 	}
 	c.Abort()
 }

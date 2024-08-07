@@ -15,7 +15,7 @@ func (h *Order) ListHistoryOrdersByUser(c *gin.Context) {
 		return
 	}
 
-	orders, err := h.orderService.ListHistoryOrdersByDisplayNameAndProductID(orderRequest.DisplayName, orderRequest.ProductID)
+	orders, err := h.orderService.ListHistoryOrdersByUserIDAndProductID(orderRequest.UserID, orderRequest.ProductID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "display_name or product_id not found"})
 		return

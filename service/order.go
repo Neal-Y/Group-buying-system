@@ -15,7 +15,7 @@ type OrderService interface {
 	CreateOrder(orderRequest *order.Request) (*database.Order, error)
 	UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error)
 	DeleteOrder(id int) error
-	ListHistoryOrdersByDisplayNameAndProductID(displayName string, productID int) ([]database.Order, error)
+	ListHistoryOrdersByUserIDAndProductID(UserID int, productID int) ([]database.Order, error)
 	SearchOrders(params util.SearchContainer) ([]database.OrderWitheTime, int64, error)
 	GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error)
 	GetByID(id int) (*database.OrderWitheTime, error)
@@ -219,13 +219,8 @@ func (s *orderService) DeleteOrder(id int) error {
 	return nil
 }
 
-func (s *orderService) ListHistoryOrdersByDisplayNameAndProductID(displayName string, productID int) ([]database.Order, error) {
-	user, err := s.userRepo.FindByDisplayName(displayName)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.orderRepo.FindByUserIDAndProductID(user.ID, productID)
+func (s *orderService) ListHistoryOrdersByUserIDAndProductID(userID int, productID int) ([]database.Order, error) {
+	return s.orderRepo.FindByUserIDAndProductID(userID, productID)
 }
 
 func (s *orderService) SearchOrders(params util.SearchContainer) ([]database.OrderWitheTime, int64, error) {

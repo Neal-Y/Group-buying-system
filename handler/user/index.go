@@ -16,23 +16,12 @@ func NewAuthorization(r *gin.RouterGroup, userService service.UserService) *User
 		userService: userService,
 	}
 
-	home(h, r)
 	lineRoute(h, r)
 	manageUser(h, r)
-	errorRoute(h, r)
-	buffer(h, r)
 	emailRoute(h, r)
 	resetPasswordRoute(h, r)
 
 	return h
-}
-
-func home(h *User, r *gin.RouterGroup) {
-	r.GET("/home", h.Home)
-}
-
-func buffer(h *User, r *gin.RouterGroup) {
-	r.GET("/buffer", h.Buffer)
 }
 
 func resetPasswordRoute(h *User, r *gin.RouterGroup) {
@@ -60,8 +49,4 @@ func manageUser(h *User, r *gin.RouterGroup) {
 	adminGroup.GET("/search", h.SearchUsers)
 	adminGroup.PATCH("/:id", h.UpdateUser)
 	adminGroup.DELETE("/:id", h.DeleteUser)
-}
-
-func errorRoute(h *User, r *gin.RouterGroup) {
-	r.GET("/error", h.Error)
 }
