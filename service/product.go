@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"log"
 	"shopping-cart/builder"
 	"shopping-cart/model/database"
 	"shopping-cart/model/datatransfer/product"
@@ -55,7 +54,6 @@ func (s *productService) UpdateProduct(id int, productDto *product.Update) error
 		SetSupplier(productDto.Supplier).
 		Build()
 
-	log.Printf("product: %v", product)
 	return s.productRepo.Update(product)
 }
 
