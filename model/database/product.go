@@ -17,6 +17,16 @@ type Product struct {
 	Supplier       string     `json:"supplier" gorm:"type:varchar(255)"`
 }
 
+type ProductWithTime struct {
+	Product
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 func (Product) TableName() string {
+	return "products"
+}
+
+func (ProductWithTime) TableName() string {
 	return "products"
 }

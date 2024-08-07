@@ -18,6 +18,7 @@ type OrderService interface {
 	ListHistoryOrdersByUserIDAndProductID(UserID int, productID int) ([]database.Order, error)
 	SearchOrders(params util.SearchContainer) ([]database.Order, int64, error)
 	GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error)
+	GetByID(id int) (*database.OrderWitheTime, error)
 }
 
 type orderService struct {
@@ -222,10 +223,14 @@ func (s *orderService) ListHistoryOrdersByUserIDAndProductID(userID int, product
 	return s.orderRepo.FindByUserIDAndProductID(userID, productID)
 }
 
-func (s *orderService) SearchOrders(params util.SearchContainer) ([]database.Order, int64, error) {
+func (s *orderService) SearchOrders(params util.SearchContainer) ([]database.OrderWitheTime, int64, error) {
 	return s.orderRepo.SearchOrders(params.Keyword, params.StartDate, params.EndDate, params.Offset, params.Limit)
 }
 
 func (s *orderService) GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error) {
 	return s.orderRepo.GetRevenueByTimePeriod(startDate, endDate)
+}
+
+func (s *orderService) GetByID(id int) (*database.OrderWitheTime, error) {
+	return s.orderRepo.FindByIDAdmin(id)
 }

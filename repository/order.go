@@ -16,8 +16,9 @@ type OrderRepository interface {
 	BeginTransaction() *gorm.DB
 	FindPendingOrdersByUserIDTx(tx *gorm.DB, userID int) ([]database.Order, error)
 	FindByUserIDAndProductID(userID, productID int) ([]database.Order, error)
-	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error)
+	SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.OrderWitheTime, int64, error)
 	GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error)
+	FindByIDAdmin(id int) (*database.OrderWitheTime, error)
 }
 
 type orderRepository struct {
@@ -78,11 +79,12 @@ func (r *orderRepository) FindByUserIDAndProductID(userID int, productID int) ([
 	return orders, nil
 }
 
-func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.Order, int64, error) {
-	var orders []database.Order
+func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.Time, offset int, limit int) ([]database.OrderWitheTime, int64, error) {
+	var orders []database.OrderWitheTime
 	var count int64
 
-	query := r.db.Model(&database.Order{}).Joins("JOIN users ON users.id = orders.user_id")
+	query := r.db.Model(&database.OrderWitheTime{}).
+		Joins("JOIN users ON users.id = orders.user_id")
 
 	if keyword != "" {
 		query = query.Where("orders.note LIKE ? OR orders.status LIKE ? OR users.display_name LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
@@ -95,7 +97,6 @@ func (r *orderRepository) SearchOrders(keyword string, startDate, endDate time.T
 	err := query.Count(&count).
 		Offset(offset).
 		Limit(limit).
-		Preload("OrderDetails").
 		Preload("User").
 		Find(&orders).Error
 
@@ -117,4 +118,13 @@ func (r *orderRepository) GetRevenueByTimePeriod(startDate, endDate time.Time) (
 		return 0, result.Error
 	}
 	return total, nil
+}
+
+func (r *orderRepository) FindByIDAdmin(id int) (*database.OrderWitheTime, error) {
+	var order database.OrderWitheTime
+	err := r.db.Where("orders.id = ?", id).First(&order).Error
+	if err != nil {
+		return nil, err
+	}
+	return &order, nil
 }

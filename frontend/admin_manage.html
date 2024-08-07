@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,23 +12,25 @@
             margin: 0;
             padding: 0;
         }
-        .container {
-            width: 80%;
-            margin: 20px auto;
-        }
         h1 {
             text-align: center;
             color: #333;
         }
-        .table-container {
-            margin-top: 20px;
+        .container {
+            width: 95%;
+            margin: 20px auto;
+            overflow-x: auto; /* 允许水平滚动 */
             background: #fff;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
+        .table-container {
+            overflow-x: auto; /* 允许表格水平滚动 */
+        }
         table {
             width: 100%;
+            table-layout: auto; /* 自动布局 */
             border-collapse: collapse;
             margin-bottom: 20px;
         }
@@ -35,6 +38,9 @@
             padding: 10px;
             text-align: left;
             border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* 超出内容显示省略号 */
         }
         table th {
             background-color: #f2f2f2;
@@ -57,6 +63,13 @@
         .pagination a:hover {
             background-color: #ddd;
         }
+        .revenue-container {
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -66,9 +79,10 @@
 
     <div class="table-container">
         <h2>Products</h2>
+        <button onclick="showProductForm()" class="btn btn-primary mb-3">Add Product</button>
         <div class="search-bar">
             <input type="text" id="product-keyword" placeholder="Search products...">
-            <button id="product-search">Search</button>
+            <button id="product-search" class="btn btn-secondary">Search</button>
         </div>
         <div class="date-filter">
             <label for="product-start-date">Start Date:</label>
@@ -76,14 +90,22 @@
             <label for="product-end-date">End Date:</label>
             <input type="date" id="product-end-date">
         </div>
-        <table>
+        <table class="table table-bordered">
             <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Description</th>
+                <th>Picture</th>
                 <th>Price</th>
+                <th>Stock</th>
+                <th>Description</th>
+                <th>Expiration Time</th>
+                <th>Is Sold Out</th>
+                <th>Sold Out At</th>
+                <th>Supplier</th>
                 <th>Created At</th>
+                <th>Updated At</th>
+                <th>Actions</th>
             </tr>
             </thead>
             <tbody id="product-table-body"></tbody>
@@ -95,7 +117,7 @@
         <h2>Orders</h2>
         <div class="search-bar">
             <input type="text" id="order-keyword" placeholder="Search orders...">
-            <button id="order-search">Search</button>
+            <button id="order-search" class="btn btn-secondary">Search</button>
         </div>
         <div class="date-filter">
             <label for="order-start-date">Start Date:</label>
@@ -103,7 +125,7 @@
             <label for="order-end-date">End Date:</label>
             <input type="date" id="order-end-date">
         </div>
-        <table>
+        <table class="table table-bordered">
             <thead>
             <tr>
                 <th>ID</th>
@@ -112,67 +134,237 @@
                 <th>Note</th>
                 <th>Status</th>
                 <th>Created At</th>
+                <th>Updated At</th>
+                <th>Actions</th>
             </tr>
             </thead>
             <tbody id="order-table-body"></tbody>
         </table>
         <div class="pagination" id="order-pagination"></div>
     </div>
+
+    <div class="revenue-container">
+        <h2>Revenue</h2>
+        <div class="date-filter">
+            <label for="revenue-start-date">Start Date:</label>
+            <input type="date" id="revenue-start-date">
+            <label for="revenue-end-date">End Date:</label>
+            <input type="date" id="revenue-end-date">
+        </div>
+        <p id="revenue-amount"></p>
+    </div>
 </div>
 
+<!-- Add Product Modal -->
+<div class="modal" id="productFormModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productFormTitle">Add Product</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="editProductId">
+                    <div class="form-group">
+                        <label for="editProductName">Name</label>
+                        <input type="text" class="form-control" id="editProductName" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductPicture">Picture</label>
+                        <input type="text" class="form-control" id="editProductPicture" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductPrice">Price</label>
+                        <input type="number" class="form-control" id="editProductPrice" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductStock">Stock</label>
+                        <input type="number" class="form-control" id="editProductStock" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductDescription">Description</label>
+                        <textarea class="form-control" id="editProductDescription" required></textarea>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductExpirationTime">Expiration Time</label>
+                        <input type="datetime-local" class="form-control" id="editProductExpirationTime" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductSupplier">Supplier</label>
+                        <input type="text" class="form-control" id="editProductSupplier" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitEditProductForm()">Save</button>
+                </form>
+
+                <!-- URL 部分，仅在编辑产品时显示 -->
+                <div id="generated-url-container" style="display:none; margin-top: 10px;">
+                    <h4>生成的产品链接</h4>
+                    <input type="text" id="generated-url" class="form-control" readonly>
+                    <button onclick="copyGeneratedUrl()" class="btn btn-secondary mt-2">复制链接</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Order Modal -->
+<div class="modal" id="orderFormModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderFormTitle">Edit Order</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="orderForm">
+                    <input type="hidden" id="editOrderId">
+                    <div class="form-group">
+                        <label for="editOrderNote">Note</label>
+                        <textarea class="form-control" id="editOrderNote" required></textarea>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderStatus">Status</label>
+                        <select class="form-control" id="editOrderStatus" required>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitEditOrderForm()">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        loadProducts(0, 10);
-        loadOrders(0, 10);
+        var today = new Date();
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        var firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 2).toISOString().substr(0, 10);
+        var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1).toISOString().substr(0, 10);
+
+        document.getElementById('product-start-date').value = firstDayOfMonth;
+        document.getElementById('product-end-date').value = lastDayOfMonth;
+        document.getElementById('order-start-date').value = firstDayOfMonth;
+        document.getElementById('order-end-date').value = lastDayOfMonth;
+        document.getElementById('revenue-start-date').value = firstDayOfMonth;
+        document.getElementById('revenue-end-date').value = lastDayOfMonth;
+
+        loadProducts(0, 10, timezone);
+        loadOrders(0, 10, timezone);
+        loadRevenue(timezone);
     });
 
     document.getElementById('product-search').addEventListener('click', function(event) {
         var keyword = document.getElementById('product-keyword').value;
         var startDate = document.getElementById('product-start-date').value;
         var endDate = document.getElementById('product-end-date').value;
-        searchProducts(keyword, startDate, endDate, 0, 10);
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        searchProducts(keyword, startDate, endDate, 0, 10, timezone);
     });
 
     document.getElementById('order-search').addEventListener('click', function(event) {
         var keyword = document.getElementById('order-keyword').value;
         var startDate = document.getElementById('order-start-date').value;
         var endDate = document.getElementById('order-end-date').value;
-        searchOrders(keyword, startDate, endDate, 0, 10);
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        searchOrders(keyword, startDate, endDate, 0, 10, timezone);
     });
 
-    function loadProducts(offset, limit) {
-        fetch(`/search/products?offset=${offset}&limit=${limit}`)
+    document.getElementById('revenue-start-date').addEventListener('change', function() {
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        loadRevenue(timezone);
+    });
+    document.getElementById('revenue-end-date').addEventListener('change', function() {
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        loadRevenue(timezone);
+    });
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('Authorization');
+        return { 'Authorization': token };
+    }
+
+    function formatDateTimeToLocale(dateTimeString) {
+        var date = new Date(dateTimeString);
+        return date.toLocaleString();
+    }
+
+    function loadProducts(offset, limit, timezone) {
+        var startDate = document.getElementById('product-start-date').value;
+        var endDate = document.getElementById('product-end-date').value;
+        fetch(`/api/admin/products/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
             .then(response => response.json())
             .then(data => {
                 updateProductTable(data.products);
-                updateProductPagination(data.total, offset, limit);
+                updateProductPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function loadOrders(offset, limit) {
-        fetch(`/search/orders?offset=${offset}&limit=${limit}`)
+    function loadOrders(offset, limit, timezone) {
+        var startDate = document.getElementById('order-start-date').value;
+        var endDate = document.getElementById('order-end-date').value;
+        fetch(`/api/admin/orders/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
             .then(response => response.json())
             .then(data => {
                 updateOrderTable(data.orders);
-                updateOrderPagination(data.total, offset, limit);
+                updateOrderPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function searchProducts(keyword, startDate, endDate, offset, limit) {
-        fetch(`/search/products?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`)
+    function searchProducts(keyword, startDate, endDate, offset, limit, timezone) {
+        fetch(`/api/admin/products/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
             .then(response => response.json())
             .then(data => {
                 updateProductTable(data.products);
-                updateProductPagination(data.total, offset, limit);
+                updateProductPagination(data.total, offset, limit, timezone);
             });
     }
 
-    function searchOrders(keyword, startDate, endDate, offset, limit) {
-        fetch(`/search/orders?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}`)
+    function searchOrders(keyword, startDate, endDate, offset, limit, timezone) {
+        fetch(`/api/admin/orders/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
             .then(response => response.json())
             .then(data => {
                 updateOrderTable(data.orders);
-                updateOrderPagination(data.total, offset, limit);
+                updateOrderPagination(data.total, offset, limit, timezone);
+            });
+    }
+
+    function loadRevenue(timezone) {
+        var startDate = document.getElementById('revenue-start-date').value;
+        var endDate = document.getElementById('revenue-end-date').value;
+        fetch(`/api/admin/orders/revenue?start_date=${startDate}&end_date=${endDate}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('revenue-amount').textContent = `Revenue: $${data.revenue}`;
             });
     }
 
@@ -180,15 +372,38 @@
         const table = document.getElementById('product-table-body');
         table.innerHTML = '';
         products.forEach(product => {
+            const productUrl = `https://your-domain.com/api/products/${product.id}`;
             const row = `<tr>
-                <td>${product.id}</td>
-                <td>${product.name}</td>
-                <td>${product.description}</td>
-                <td>${product.price}</td>
-                <td>${product.created_at}</td>
-            </tr>`;
+            <td>${product.id}</td>
+            <td>${product.name}</td>
+            <td>${product.picture}</td>
+            <td>${product.price}</td>
+            <td>${product.stock}</td>
+            <td>${product.description}</td>
+            <td>${formatDateTimeToLocale(product.expiration_time)}</td>
+            <td>${product.is_sold_out}</td>
+            <td>${product.sold_out_at ? formatDateTimeToLocale(product.sold_out_at) : 'N/A'}</td>
+            <td>${product.supplier}</td>
+            <td>${formatDateTimeToLocale(product.created_at)}</td>
+            <td>${formatDateTimeToLocale(product.updated_at)}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="showEditProductForm(${product.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
+                <button class="btn btn-secondary btn-sm" onclick="copyProductUrl('${productUrl}')">复制链接</button>
+            </td>
+        </tr>`;
             table.innerHTML += row;
         });
+    }
+
+    function copyProductUrl(url) {
+        const tempInput = document.createElement('input');
+        document.body.appendChild(tempInput);
+        tempInput.value = url;
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert('产品链接已复制到剪贴板');
     }
 
     function updateOrderTable(orders) {
@@ -201,13 +416,18 @@
                 <td>${order.total_price}</td>
                 <td>${order.note}</td>
                 <td>${order.status}</td>
-                <td>${order.created_at}</td>
+                <td>${formatDateTimeToLocale(order.created_at)}</td>
+                <td>${formatDateTimeToLocale(order.updated_at)}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditOrderForm(${order.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id})">Delete</button>
+                </td>
             </tr>`;
             table.innerHTML += row;
         });
     }
 
-    function updateProductPagination(total, offset, limit) {
+    function updateProductPagination(total, offset, limit, timezone) {
         const paginationContainer = document.getElementById('product-pagination');
         paginationContainer.innerHTML = '';
 
@@ -219,13 +439,13 @@
             pageLink.innerText = i + 1;
             pageLink.addEventListener('click', (event) => {
                 event.preventDefault();
-                loadProducts(i * limit, limit);
+                loadProducts(i * limit, limit, timezone);
             });
             paginationContainer.appendChild(pageLink);
         }
     }
 
-    function updateOrderPagination(total, offset, limit) {
+    function updateOrderPagination(total, offset, limit, timezone) {
         const paginationContainer = document.getElementById('order-pagination');
         paginationContainer.innerHTML = '';
 
@@ -237,9 +457,196 @@
             pageLink.innerText = i + 1;
             pageLink.addEventListener('click', (event) => {
                 event.preventDefault();
-                loadOrders(i * limit, limit);
+                loadOrders(i * limit, limit, timezone);
             });
             paginationContainer.appendChild(pageLink);
+        }
+    }
+
+    function showProductForm() {
+        document.getElementById('editProductId').value = '';
+        document.getElementById('productForm').reset();
+        document.getElementById('productFormTitle').innerText = 'Add Product';
+        document.getElementById('generated-url-container').style.display = 'none';
+        $('#productFormModal').modal('show');
+    }
+
+    function showEditProductForm(productId) {
+        // 获取产品数据并显示编辑表单
+        fetch(`/api/admin/products/${productId}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                const product = data.product; // 确保获取的对象是正确的
+
+                // 将 UTC 时间转换为本地时间
+                const expirationTime = new Date(product.expiration_time);
+                const localExpirationTime = new Date(expirationTime.getTime() - (expirationTime.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+
+                // 设置表单字段
+                document.getElementById('editProductId').value = product.id;
+                document.getElementById('editProductName').value = product.name;
+                document.getElementById('editProductPicture').value = product.picture;
+                document.getElementById('editProductPrice').value = product.price;
+                document.getElementById('editProductStock').value = product.stock;
+                document.getElementById('editProductDescription').value = product.description;
+                document.getElementById('editProductExpirationTime').value = localExpirationTime;
+                document.getElementById('editProductSupplier').value = product.supplier;
+
+                // 生成并显示产品链接
+                const productUrl = `https://your-domain.com/api/products/${product.id}`;
+                document.getElementById('generated-url').value = productUrl; // 显示 URL
+                document.getElementById('generated-url-container').style.display = 'block'; // 显示链接区域
+
+                document.getElementById('productFormTitle').innerText = 'Edit Product';
+                $('#productFormModal').modal('show');
+            });
+    }
+
+    function submitEditProductForm() {
+        const form = document.getElementById('productForm');
+        const isValid = form.checkValidity();
+
+        if (!isValid) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const productId = document.getElementById('editProductId').value;
+        const productData = {
+            name: document.getElementById('editProductName').value,
+            picture: document.getElementById('editProductPicture').value,
+            price: parseFloat(document.getElementById('editProductPrice').value),
+            stock: parseInt(document.getElementById('editProductStock').value),
+            description: document.getElementById('editProductDescription').value,
+            expiration_time: new Date(document.getElementById('editProductExpirationTime').value).toISOString(),
+            supplier: document.getElementById('editProductSupplier').value,
+        };
+
+        let url = '/api/admin/products';
+        let method = 'POST';
+
+        if (productId) {
+            // Update existing product
+            url += `/${productId}`;
+            method = 'PATCH';
+        }
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders()
+            },
+            body: JSON.stringify(productData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                $('#productFormModal').modal('hide');
+                loadProducts(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+                // 生成并显示产品链接
+                const productId = data.product.id;
+                const productUrl = `https://your-domain.com/api/products/${productId}`;
+                document.getElementById('generated-url').value = productUrl;
+                document.getElementById('generated-url-container').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save product.');
+            });
+    }
+
+    function copyGeneratedUrl() {
+        const urlInput = document.getElementById('generated-url');
+        urlInput.select();
+        document.execCommand('copy');
+        alert('链接已复制到剪贴板');
+    }
+
+    function deleteProduct(productId) {
+        if (confirm('Are you sure you want to delete this product?')) {
+            fetch(`/api/admin/products/${productId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            })
+                .then(() => {
+                    loadProducts(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
+        }
+    }
+
+    function showEditOrderForm(orderId) {
+        // Load order data and show form to edit the order
+        fetch(`/api/admin/orders/${orderId}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                const order = data.order
+                document.getElementById('editOrderId').value = order.id;
+                document.getElementById('editOrderNote').value = order.note;
+                document.getElementById('editOrderStatus').value = order.status;
+                document.getElementById('orderFormTitle').innerText = 'Edit Order';
+                $('#orderFormModal').modal('show');
+            });
+    }
+
+    function submitEditOrderForm() {
+        const orderId = document.getElementById('editOrderId').value;
+        const orderData = {
+            note: document.getElementById('editOrderNote').value,
+            status: document.getElementById('editOrderStatus').value,
+        };
+
+        if (orderId) {
+            // Update existing order
+            fetch(`/api/admin/orders/${orderId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify(orderData)
+            })
+                .then(response => response.json())
+                .then(() => {
+                    $('#orderFormModal').modal('hide');
+                    loadOrders(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
+        } else {
+            // Create new order
+            fetch(`/api/admin/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify(orderData)
+            })
+                .then(response => response.json())
+                .then(() => {
+                    $('#orderFormModal').modal('hide');
+                    loadOrders(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
+        }
+    }
+
+    function deleteOrder(orderId) {
+        if (confirm('Are you sure you want to delete this order?')) {
+            fetch(`/api/admin/orders/${orderId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            })
+                .then(() => {
+                    loadOrders(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
         }
     }
 </script>

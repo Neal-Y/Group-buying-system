@@ -31,3 +31,14 @@ func (h *Product) SearchProducts(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"products": products, "total": total})
 }
+
+func (h *Product) GetByID(c *gin.Context) {
+	id, _ := util.GetIDFromPath(c, "id")
+	product, err := h.productService.GetByID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"product": product})
+}

@@ -33,4 +33,5 @@ func adminRoute(h *Product, r *gin.RouterGroup) {
 	adminRoute.PATCH("/:id", h.UpdateProduct)
 	adminRoute.DELETE("/:id", h.DeleteProduct)
 	adminRoute.GET("/search", h.SearchProducts)
+	adminRoute.GET("/:id", h.GetByID)
 }

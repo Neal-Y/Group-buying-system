@@ -20,12 +20,13 @@ func SearchParams(c *gin.Context) (SearchContainer, error) {
 	startDateStr := c.Query("start_date")
 	endDateStr := c.Query("end_date")
 	timezone := c.DefaultQuery("timezone", "UTC")
-
 	params.PaginationParams = ParsePaginationParams(c)
 
-	params.StartDate, params.EndDate, err = ConvertDateRangeToUTC(startDateStr, endDateStr, timezone)
-	if err != nil {
-		return params, err
+	if startDateStr != "" && endDateStr != "" {
+		params.StartDate, params.EndDate, err = ConvertDateRangeToUTC(startDateStr, endDateStr, timezone)
+		if err != nil {
+			return params, err
+		}
 	}
 
 	return params, nil

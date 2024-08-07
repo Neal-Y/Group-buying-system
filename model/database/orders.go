@@ -1,5 +1,7 @@
 package database
 
+import "time"
+
 type Order struct {
 	ID           int           `json:"id" gorm:"primary_key;autoIncrement"`
 	UserID       int           `json:"user_id" gorm:"not null"`
@@ -10,6 +12,16 @@ type Order struct {
 	OrderDetails []OrderDetail `json:"order_details,omitempty" gorm:"foreignKey:OrderID"`
 }
 
+type OrderWitheTime struct {
+	Order
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 func (Order) TableName() string {
+	return "orders"
+}
+
+func (OrderWitheTime) TableName() string {
 	return "orders"
 }
