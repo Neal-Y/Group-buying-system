@@ -372,7 +372,7 @@
         const table = document.getElementById('product-table-body');
         table.innerHTML = '';
         products.forEach(product => {
-            const productUrl = `https://your-domain.com/api/products/${product.id}`;
+            const productUrl = `https://your-domain.com/products/${product.id}`;
             const row = `<tr>
             <td>${product.id}</td>
             <td>${product.name}</td>
@@ -495,7 +495,7 @@
                 document.getElementById('editProductSupplier').value = product.supplier;
 
                 // 生成并显示产品链接
-                const productUrl = `https://your-domain.com/api/products/${product.id}`;
+                const productUrl = `https://your-domain.com/products/${product.id}`;
                 document.getElementById('generated-url').value = productUrl; // 显示 URL
                 document.getElementById('generated-url-container').style.display = 'block'; // 显示链接区域
 
