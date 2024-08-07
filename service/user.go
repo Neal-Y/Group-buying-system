@@ -21,13 +21,13 @@ type UserService interface {
 	RegisterUser(req *user.Register) error
 	CreateUser(req *user.Request) error
 	GetUserByID(id int) (*database.User, error)
-	GetUsers() ([]database.User, error)
 	UpdateUser(id int, req *user.Update) error
 	DeleteUser(id int) error
-	ListBlockedUsers() ([]database.User, error)
 	GetUserByDisplayName(displayName string) (*database.User, error)
 	RequestPasswordReset(email string) error
 	ResetPassword(email, code, newPassword, displayName string) error
+	SearchUsers(params util.SearchContainer, isMember bool) ([]database.ExternalUser, int64, error)
+	GetByID(id int) (*database.ExternalUser, error)
 }
 
 type userService struct {
@@ -132,6 +132,7 @@ func (s *userService) CreateUser(req *user.Request) error {
 	user := builder.NewUserBuilder().
 		WithLineID("CreatedByAdmin").
 		WithDisplayName(req.DisplayName).
+		WithEmail(req.Email).
 		WithPhone(req.Phone).
 		WithIsMember(req.IsMember).
 		Build()
@@ -141,10 +142,6 @@ func (s *userService) CreateUser(req *user.Request) error {
 
 func (s *userService) GetUserByID(id int) (*database.User, error) {
 	return s.userRepo.FindByID(id)
-}
-
-func (s *userService) GetUsers() ([]database.User, error) {
-	return s.userRepo.FindAll()
 }
 
 func (s *userService) UpdateUser(id int, req *user.Update) error {
@@ -190,10 +187,6 @@ func (s *userService) DeleteUser(id int) error {
 	return nil
 }
 
-func (s *userService) ListBlockedUsers() ([]database.User, error) {
-	return s.userRepo.FindAll()
-}
-
 func (s *userService) GetUserByDisplayName(displayName string) (*database.User, error) {
 	return s.userRepo.FindByDisplayName(displayName)
 }
@@ -236,4 +229,12 @@ func (s *userService) ResetPassword(email, code, newPassword, displayName string
 	}
 	user.PasswordHash = string(hashedPassword)
 	return s.userRepo.Update(user)
+}
+
+func (s *userService) SearchUsers(params util.SearchContainer, isMember bool) ([]database.ExternalUser, int64, error) {
+	return s.userRepo.SearchUsers(params.Keyword, params.StartDate, params.EndDate, params.Offset, params.Limit, isMember)
+}
+
+func (s *userService) GetByID(id int) (*database.ExternalUser, error) {
+	return s.userRepo.FindByIDAdmin(id)
 }

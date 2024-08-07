@@ -19,18 +19,18 @@
         .container {
             width: 95%;
             margin: 20px auto;
-            overflow-x: auto; /* 允许水平滚动 */
+            overflow-x: auto;
             background: #fff;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
         .table-container {
-            overflow-x: auto; /* 允许表格水平滚动 */
+            overflow-x: auto;
         }
         table {
             width: 100%;
-            table-layout: auto; /* 自动布局 */
+            table-layout: auto;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
@@ -40,7 +40,7 @@
             border-bottom: 1px solid #ddd;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis; /* 超出内容显示省略号 */
+            text-overflow: ellipsis;
         }
         table th {
             background-color: #f2f2f2;
@@ -141,6 +141,39 @@
             <tbody id="order-table-body"></tbody>
         </table>
         <div class="pagination" id="order-pagination"></div>
+    </div>
+
+    <div class="table-container">
+        <h2>Users</h2>
+        <button onclick="showUserForm()" class="btn btn-primary mb-3">Add User</button>
+        <div class="search-bar">
+            <input type="text" id="user-keyword" placeholder="Search users...">
+            <button id="user-search" class="btn btn-secondary">Search</button>
+        </div>
+        <div class="date-filter">
+            <label for="user-start-date">Start Date:</label>
+            <input type="date" id="user-start-date">
+            <label for="user-end-date">End Date:</label>
+            <input type="date" id="user-end-date">
+        </div>
+        <label for="user-is-member">Is Member:</label>
+        <input type="checkbox" id="user-is-member">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Display Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Is Member</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody id="user-table-body"></tbody>
+        </table>
+        <div class="pagination" id="user-pagination"></div>
     </div>
 
     <div class="revenue-container">
@@ -251,6 +284,84 @@
     </div>
 </div>
 
+<!-- Add User Modal -->
+<div class="modal" id="userFormModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userFormTitle">Add User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-group">
+                        <label for="editUserDisplayName">Display Name</label>
+                        <input type="text" class="form-control" id="editUserDisplayName" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserEmail">Email</label>
+                        <input type="email" class="form-control" id="editUserEmail">
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserPhone">Phone</label>
+                        <input type="text" class="form-control" id="editUserPhone">
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserIsMember">Is Member</label>
+                        <input type="checkbox" class="form-control" id="editUserIsMember">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitUserForm()">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal" id="userFormModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userFormTitle">Edit User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-group">
+                        <label for="editUserDisplayName">Display Name</label>
+                        <input type="text" class="form-control" id="editUserDisplayName" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserEmail">Email</label>
+                        <input type="email" class="form-control" id="editUserEmail" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserPhone">Phone</label>
+                        <input type="text" class="form-control" id="editUserPhone" required>
+                        <div class="invalid-feedback">This field is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserIsMember">Is Member</label>
+                        <input type="checkbox" class="form-control" id="editUserIsMember">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitEditUserForm()">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -267,9 +378,12 @@
         document.getElementById('order-end-date').value = lastDayOfMonth;
         document.getElementById('revenue-start-date').value = firstDayOfMonth;
         document.getElementById('revenue-end-date').value = lastDayOfMonth;
+        document.getElementById('user-start-date').value = firstDayOfMonth;
+        document.getElementById('user-end-date').value = lastDayOfMonth;
 
         loadProducts(0, 10, timezone);
         loadOrders(0, 10, timezone);
+        loadUsers(0, 10, timezone);
         loadRevenue(timezone);
     });
 
@@ -287,6 +401,15 @@
         var endDate = document.getElementById('order-end-date').value;
         var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         searchOrders(keyword, startDate, endDate, 0, 10, timezone);
+    });
+
+    document.getElementById('user-search').addEventListener('click', function(event) {
+        var keyword = document.getElementById('user-keyword').value;
+        var startDate = document.getElementById('user-start-date').value;
+        var endDate = document.getElementById('user-end-date').value;
+        var isMember = document.getElementById('user-is-member').checked;
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        searchUsers(keyword, startDate, endDate, 0, 10, isMember, timezone);
     });
 
     document.getElementById('revenue-start-date').addEventListener('change', function() {
@@ -334,6 +457,23 @@
             });
     }
 
+    function loadUsers(offset, limit, timezone) {
+        var startDate = document.getElementById('user-start-date').value;
+        var endDate = document.getElementById('user-end-date').value;
+        var isMember = document.getElementById('user-is-member').checked;
+        fetch(`/api/admin/users/search?start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&is_member=${isMember}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                updateUserTable(data.users);
+                updateUserPagination(data.total, offset, limit, timezone);
+            })
+            .catch(error => {
+                console.error('Error loading users:', error);
+            });
+    }
+
     function searchProducts(keyword, startDate, endDate, offset, limit, timezone) {
         fetch(`/api/admin/products/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&timezone=${timezone}`, {
             headers: getAuthHeaders()
@@ -353,6 +493,17 @@
             .then(data => {
                 updateOrderTable(data.orders);
                 updateOrderPagination(data.total, offset, limit, timezone);
+            });
+    }
+
+    function searchUsers(keyword, startDate, endDate, offset, limit, isMember, timezone) {
+        fetch(`/api/admin/users/search?keyword=${keyword}&start_date=${startDate}&end_date=${endDate}&offset=${offset}&limit=${limit}&is_member=${isMember}&timezone=${timezone}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                updateUserTable(data.users);
+                updateUserPagination(data.total, offset, limit, timezone);
             });
     }
 
@@ -427,6 +578,28 @@
         });
     }
 
+    function updateUserTable(users) {
+        const table = document.getElementById('user-table-body');
+        table.innerHTML = ''; // 清空表格內容
+
+        users.forEach(user => {
+            const row = `<tr>
+            <td>${user.id}</td>
+            <td>${user.display_name}</td>
+            <td>${user.email}</td>
+            <td>${user.phone}</td>
+            <td>${user.is_member}</td>
+            <td>${formatDateTimeToLocale(user.created_at)}</td>
+            <td>${formatDateTimeToLocale(user.updated_at)}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="showEditUserForm(${user.id})">Edit</button>
+<!--                <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>-->
+            </td>
+        </tr>`;
+            table.innerHTML += row;
+        });
+    }
+
     function updateProductPagination(total, offset, limit, timezone) {
         const paginationContainer = document.getElementById('product-pagination');
         paginationContainer.innerHTML = '';
@@ -463,12 +636,37 @@
         }
     }
 
+    function updateUserPagination(total, offset, limit, timezone) {
+        const paginationContainer = document.getElementById('user-pagination');
+        paginationContainer.innerHTML = '';
+
+        const totalPages = Math.ceil(total / limit);
+
+        for (let i = 0; i < totalPages; i++) {
+            const pageLink = document.createElement('a');
+            pageLink.href = '#';
+            pageLink.innerText = i + 1;
+            pageLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                loadUsers(i * limit, limit, timezone);
+            });
+            paginationContainer.appendChild(pageLink);
+        }
+    }
+
     function showProductForm() {
         document.getElementById('editProductId').value = '';
         document.getElementById('productForm').reset();
         document.getElementById('productFormTitle').innerText = 'Add Product';
         document.getElementById('generated-url-container').style.display = 'none';
         $('#productFormModal').modal('show');
+    }
+
+    function showUserForm() {
+        document.getElementById('editUserId').value = '';
+        document.getElementById('userForm').reset();
+        document.getElementById('userFormTitle').innerText = 'Add User';
+        $('#userFormModal').modal('show');
     }
 
     function showEditProductForm(productId) {
@@ -649,6 +847,105 @@
                 });
         }
     }
+
+    function showEditUserForm(userId) {
+        // Load user data and show form to edit the user
+        fetch(`/api/admin/users/${userId}`, {
+            headers: getAuthHeaders()
+        })
+            .then(response => response.json())
+            .then(data => {
+                const user = data.user;
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUserDisplayName').value = user.display_name;
+                document.getElementById('editUserEmail').value = user.email;
+                document.getElementById('editUserPhone').value = user.phone;
+                document.getElementById('editUserIsMember').checked = user.is_member;
+                document.getElementById('userFormTitle').innerText = 'Edit User';
+                $('#userFormModal').modal('show');
+            });
+    }
+
+    function submitUserForm() {
+        const userId = document.getElementById('editUserId').value;
+        const userData = {
+            display_name: document.getElementById('editUserDisplayName').value,
+            email: document.getElementById('editUserEmail').value,
+            phone: document.getElementById('editUserPhone').value,
+            is_member: document.getElementById('editUserIsMember').checked,
+        };
+
+        let url = '/api/admin/users';
+        let method = 'POST';
+
+        if (userId) {
+            // Update existing user
+            url += `/${userId}`;
+            method = 'PATCH';
+        }
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders()
+            },
+            body: JSON.stringify(userData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(() => {
+                $('#userFormModal').modal('hide');
+                loadUsers(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save user.');
+            });
+    }
+
+    function submitEditUserForm() {
+        const userId = document.getElementById('editUserId').value;
+        const userData = {
+            display_name: document.getElementById('editUserDisplayName').value,
+            email: document.getElementById('editUserEmail').value,
+            phone: document.getElementById('editUserPhone').value,
+            is_member: document.getElementById('editUserIsMember').checked,
+        };
+
+        if (userId) {
+            // Update existing user
+            fetch(`/api/admin/users/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify(userData)
+            })
+                .then(response => response.json())
+                .then(() => {
+                    $('#userFormModal').modal('hide');
+                    loadUsers(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+                });
+        }
+    }
+
+    // function deleteUser(userId) {
+    //     if (confirm('Are you sure you want to delete this user?')) {
+    //         fetch(`/api/admin/users/${userId}`, {
+    //             method: 'DELETE',
+    //             headers: getAuthHeaders()
+    //         })
+    //             .then(() => {
+    //                 loadUsers(0, 10, Intl.DateTimeFormat().resolvedOptions().timeZone);
+    //             });
+    //     }
+    // }
 </script>
 
 </body>
