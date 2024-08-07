@@ -16,7 +16,7 @@ type OrderService interface {
 	UpdateOrderStatusAndNote(id int, orderRequest *order.StatusRequest) (*database.Order, error)
 	DeleteOrder(id int) error
 	ListHistoryOrdersByUserIDAndProductID(UserID int, productID int) ([]database.Order, error)
-	SearchOrders(params util.SearchContainer) ([]database.Order, int64, error)
+	SearchOrders(params util.SearchContainer) ([]database.OrderWitheTime, int64, error)
 	GetRevenueByTimePeriod(startDate, endDate time.Time) (float64, error)
 	GetByID(id int) (*database.OrderWitheTime, error)
 }
