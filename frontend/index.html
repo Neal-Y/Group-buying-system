@@ -301,29 +301,31 @@
         const token = localStorage.getItem('Authorization');
         const productId = localStorage.getItem('productId');
 
-        fetch('/api/orders/history', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ user_id: parseInt(user_id), product_id: parseInt(productId) })
-        })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('無法加載歷史訂單');
-                }
+        if (user_id) {
+            fetch('/api/orders/history', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ user_id: parseInt(user_id), product_id: parseInt(productId) })
             })
-            .then(data => {
-                console.log('歷史訂單:', data);
-                updateHistoryTable(data.orders); // Assuming data contains an array of orders
-            })
-            .catch(error => {
-                console.error('無法加載歷史訂單:', error);
-                alert(error.message);
-            });
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('無法加載歷史訂單');
+                    }
+                })
+                .then(data => {
+                    console.log('歷史訂單:', data);
+                    updateHistoryTable(data.orders); // Assuming data contains an array of orders
+                })
+                .catch(error => {
+                    console.error('無法加載歷史訂單:', error);
+                    alert(error.message);
+                });
+        }
     }
 
     function updateHistoryTable(orders) {
