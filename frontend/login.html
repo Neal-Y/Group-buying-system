@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f3f4f6;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,6 +22,12 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .login-container h2 {
@@ -42,6 +48,11 @@
             margin-bottom: 1rem;
             border: 1px solid #ddd;
             border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+
+        .login-container input:focus {
+            border-color: #007bff;
         }
 
         .login-container button {
@@ -65,10 +76,56 @@
             text-align: center;
             margin-bottom: 1rem;
         }
+
+        .login-container .forgot-password {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .login-container .forgot-password button {
+            background: none;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .login-container .forgot-password button:hover {
+            color: #0056b3;
+        }
+
+        .confirm-email, .reset-password {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .confirm-email p, .reset-password p {
+            margin: 0.5rem 0;
+        }
+
+        .confirm-email button, .reset-password button {
+            background: #28a745;
+            border: none;
+            padding: 0.5rem 1rem;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .confirm-email button:hover, .reset-password button:hover {
+            background: #218838;
+        }
+
+        .reset-password input {
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
-<div class="login-container">
+<div class="login-container" id="login-container">
     <h2>管理员登录</h2>
     <form id="login-form">
         <label for="username">用户名:</label>
@@ -78,7 +135,37 @@
         <div class="error-message" id="error-message"></div>
         <button type="submit">登录</button>
     </form>
+    <div class="forgot-password">
+        <button onclick="showForgotPasswordForm()">忘记密码？</button>
+    </div>
 </div>
+
+<div class="login-container" id="forgot-password-modal" style="display: none;">
+    <h2>忘记密码</h2>
+    <form id="forgot-password-form">
+        <label for="forgot-username">用户名:</label>
+        <input type="text" id="forgot-username" name="username" required>
+        <div class="error-message" id="forgot-error-message"></div>
+        <button type="submit">发送</button>
+    </form>
+    <div class="confirm-email" id="confirm-email" style="display: none;">
+        <p>请确认您的电子邮件: <span id="confirm-email-address"></span></p>
+        <button onclick="sendVerificationCode()">发送验证码</button>
+    </div>
+    <div class="reset-password" id="reset-password" style="display: none;">
+        <form id="reset-password-form">
+            <label for="verification-code">验证码:</label>
+            <input type="text" id="verification-code" name="verification_code" required>
+            <label for="new-password">新密码:</label>
+            <input type="password" id="new-password" name="new_password" required>
+            <label for="confirm-password">确认新密码:</label>
+            <input type="password" id="confirm-password" name="confirm_password" required>
+            <div class="error-message" id="reset-error-message"></div>
+            <button type="submit">更改密码</button>
+        </form>
+    </div>
+</div>
+
 <script>
     document.getElementById('login-form').addEventListener('submit', async function(event) {
         event.preventDefault();
@@ -120,6 +207,82 @@
             window.location.href = '/admin/login';
         }
     }
+
+    function showForgotPasswordForm() {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('forgot-password-modal').style.display = 'block';
+    }
+
+    document.getElementById('forgot-password-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const username = formData.get('username');
+        const response = await fetch('/api/get_email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username })
+        });
+        const result = await response.json();
+        if (response.ok) {
+            document.getElementById('confirm-email-address').textContent = result.email;
+            document.getElementById('confirm-email').style.display = 'block';
+        } else {
+            document.getElementById('forgot-error-message').textContent = '获取电子邮件失败: ' + result.error;
+        }
+    });
+
+    async function sendVerificationCode() {
+        const email = document.getElementById('confirm-email-address').textContent;
+        const response = await fetch('/api/request_password_reset', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+        if (response.ok) {
+            document.getElementById('reset-password').style.display = 'block';
+            document.getElementById('confirm-email').style.display = 'none';
+        } else {
+            document.getElementById('forgot-error-message').textContent = '发送验证码失败';
+        }
+    }
+
+    document.getElementById('reset-password-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const newPassword = formData.get('new_password');
+        const confirmPassword = formData.get('confirm_password');
+
+        if (newPassword !== confirmPassword) {
+            document.getElementById('reset-error-message').textContent = '新密码与确认新密码不一致';
+            return;
+        }
+
+        const data = {
+            email: document.getElementById('confirm-email-address').textContent,
+            username: document.getElementById('forgot-username').value,
+            code: formData.get('verification_code'),
+            new_password: newPassword
+        };
+
+        const response = await fetch('/api/reset_password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (response.ok) {
+            alert('密码更改成功');
+            window.location.href = '/admin/login';
+        } else {
+            document.getElementById('reset-error-message').textContent = '更改密码失败: ' + result.error;
+        }
+    });
 </script>
 </body>
 </html>
