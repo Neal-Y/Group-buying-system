@@ -3,6 +3,7 @@ package route
 import (
 	"github.com/gin-gonic/gin"
 	"shopping-cart/handler/admin"
+	adminRender "shopping-cart/handler/admin/render"
 	"shopping-cart/handler/order"
 	"shopping-cart/handler/product"
 	productRender "shopping-cart/handler/product/render"
@@ -24,7 +25,7 @@ func GinRouter() (server *gin.Engine) {
 	server.Use(gin.Logger())
 	server.LoadHTMLGlob("frontend/*")
 
-	admin.RegisterHomeRoutes(server)
+	adminRender.RegisterHomeRoutes(server)
 	userRender.RegisterUserHomeRoutes(server)
 	productRender.ProductPage(server)
 
