@@ -43,6 +43,7 @@ func (s *adminService) RegisterAdmin(req *admin.Request) error {
 		Username:     req.Username,
 		PasswordHash: string(hashedPassword),
 		Email:        req.Email,
+		LineID:       req.LineID,
 	}
 	return s.adminRepo.Create(admin)
 }

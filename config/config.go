@@ -16,6 +16,9 @@ type Config struct {
 	GmailSecret      string
 	LineMsgSecret    string
 	LineMsgToken     string
+	AwsDbUsername    string
+	AwsDbPassword    string
+	AwsDbHost        string
 }
 
 var AppConfig Config
@@ -38,5 +41,8 @@ func LoadConfig() {
 		GmailSecret:      viper.GetString("GMAIL_SECRET"),
 		LineMsgSecret:    viper.GetString("LINE_MSG_SECRET"),
 		LineMsgToken:     viper.GetString("LINE_MSG_TOKEN"),
+		AwsDbUsername:    viper.GetString("AWS_DATABASE_USERNAME"),
+		AwsDbPassword:    viper.GetString("AWS_DATABASE_PASSWORD"),
+		AwsDbHost:        viper.GetString("AWS_DATABASE_HOST"),
 	}
 }
