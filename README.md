@@ -1,4 +1,4 @@
-# 團購系統專案(It's core of concept, details are withheld for commercial use)
+# 鮮醬子肉鋪 團購系統專案(It's core of concept, details are withheld for commercial use)
 
 ## 專案簡介
 這個專案的初衷是為了幫助業主自動化管理 LINE 群組中的團購訂單。在傳統團購中，群組成員經常使用 "+1" 和 "-1" 的方式來統計購買意願，但這種方法容易出錯且耗時。業主必須反覆確認訂單數量，效率低下。
